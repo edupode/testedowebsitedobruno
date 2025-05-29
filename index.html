@@ -43,6 +43,7 @@
         text-align: center;
         margin-bottom: 2rem;
         color: #fff;
+        position: relative;
       }
       header h1 {
         font-size: 2.8rem;
@@ -51,6 +52,23 @@
       }
       header p {
         font-size: 1.2rem;
+      }
+      /* Botão de Administração no header */
+      #btnAdmin {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--secondary-color);
+        border: none;
+        color: #fff;
+        padding: 0.5rem 0.8rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s ease, transform 0.2s ease;
+      }
+      #btnAdmin:hover {
+        background: var(--primary-color);
+        transform: translateY(-2px);
       }
       /* Containers */
       .container {
@@ -74,11 +92,19 @@
           transform: translateY(0);
         }
       }
-      h2 {
+      h2.section-header {
         margin-bottom: 1.5rem;
         color: var(--primary-color);
         border-bottom: 2px solid var(--secondary-color);
         padding-bottom: 0.3rem;
+        cursor: pointer;
+        user-select: none;
+      }
+      .content {
+        display: none;
+      }
+      .content.active {
+        display: block;
       }
       .form-row {
         margin-bottom: 1rem;
@@ -211,8 +237,9 @@
   </head>
   <body>
     <header>
-      <h1>Mercado Livre - Publicar Anúncio</h1>
-      <p>Integrando Login OAuth com funcionalidades avançadas</p>
+      <h1 id="siteTitle">Mercado Livre - Publicar Anúncio</h1>
+      <p id="siteSubTitle">Integrando Login OAuth com funcionalidades avançadas</p>
+      <button id="btnAdmin" class="btn">Administração</button>
     </header>
 
     <!-- LOGIN SECTION -->
@@ -234,113 +261,115 @@
 
     <!-- MAIN APPLICATION: Visible only after login -->
     <div class="container hidden" id="appContainer">
-      <h2>Criar Anúncio Único</h2>
-      <form id="formCriarAnuncio">
-        <!-- Tipo de Artigo (padrão: Produtos) -->
-        <div class="form-row">
-          <label for="primaryCategory">Tipo de Artigo:</label>
-          <select id="primaryCategory">
-            <option value="Produtos" selected>Produtos</option>
-            <option value="Veiculos">Veículos</option>
-            <option value="Imoveis">Imóveis</option>
-            <option value="Servicos">Serviços</option>
-          </select>
-        </div>
-        <!-- Nome do Produto -->
-        <div class="form-row">
-          <label for="createTitle">Nome do Produto:</label>
-          <input type="text" id="createTitle" placeholder="Digite o nome do produto" required />
-        </div>
-        <!-- Automatic Category Fetch -->
-        <div class="form-row" id="automaticCategoriesContainer">
-          <p style="color: var(--primary-color); font-weight: bold;">Categorias automáticas:</p>
-          <div class="checkbox-group" id="siteCategories">
-            <!-- Categories will be populated here automatically -->
-          </div>
-        </div>
-        <!-- Marca e Número da Peça -->
-        <div class="form-row">
-          <label for="createBrand">Marca:</label>
-          <input type="text" id="createBrand" placeholder="Digite a marca" required />
-        </div>
-        <div class="form-row">
-          <label for="createPartNumber">Número da Peça:</label>
-          <input type="text" id="createPartNumber" placeholder="Digite o número da peça" required />
-        </div>
-        <!-- Estado do Artigo -->
-        <div class="form-row">
-          <label for="itemCondition">Condição do Artigo:</label>
-          <select id="itemCondition">
-            <option value="new">Novo</option>
-            <option value="used">Usado</option>
-          </select>
-        </div>
-        <!-- Código de Etiqueta (automático: Sem código) -->
-        <div class="form-row">
-          <label>Código de Etiqueta:</label>
-          <label><input type="radio" name="etiqueta" value="none" checked /> Sem código</label>
-        </div>
-        <!-- Código INMETRO -->
-        <div class="form-row">
-          <label for="inmetroCode">Código INMETRO:</label>
-          <input type="text" id="inmetroCode" placeholder="Clique em 'Gerar Código'" readonly />
-          <button type="button" id="btnGenerateInmetro" class="btn">Gerar Código INMETRO</button>
-        </div>
-        <!-- Características Secundárias -->
-        <fieldset>
-          <legend>Características Secundárias</legend>
+      <!-- Collapsible Section: Criar Anúncio Único -->
+      <h2 class="section-header" data-target="uniqueAd">Criar Anúncio Único</h2>
+      <div class="content" id="uniqueAd">
+        <form id="formCriarAnuncio">
+          <!-- Tipo de Artigo (padrão: Produtos) -->
           <div class="form-row">
-            <label for="vehicleType">Tipo de Veículo:</label>
-            <input type="text" id="vehicleType" placeholder="Ex: Carro, Moto, etc." />
+            <label for="primaryCategory">Tipo de Artigo:</label>
+            <select id="primaryCategory">
+              <option value="Produtos" selected>Produtos</option>
+              <option value="Veiculos">Veículos</option>
+              <option value="Imoveis">Imóveis</option>
+              <option value="Servicos">Serviços</option>
+            </select>
+          </div>
+          <!-- Nome do Produto -->
+          <div class="form-row">
+            <label for="createTitle">Nome do Produto:</label>
+            <input type="text" id="createTitle" placeholder="Digite o nome do produto" required />
+          </div>
+          <!-- Automatic Category Fetch -->
+          <div class="form-row" id="automaticCategoriesContainer">
+            <p style="color: var(--primary-color); font-weight: bold;">Categorias automáticas:</p>
+            <div class="checkbox-group" id="siteCategories">
+              <!-- Categories will be populated here automatically -->
+            </div>
+          </div>
+          <!-- Marca e Número da Peça -->
+          <div class="form-row">
+            <label for="createBrand">Marca:</label>
+            <input type="text" id="createBrand" placeholder="Digite a marca" required />
           </div>
           <div class="form-row">
-            <label for="vehiclePositions">Posições:</label>
-            <input type="text" id="vehiclePositions" placeholder="Ex: Frente, Traseira, etc." />
+            <label for="createPartNumber">Número da Peça:</label>
+            <input type="text" id="createPartNumber" placeholder="Digite o número da peça" required />
           </div>
-          <div class="form-row checkbox-group">
-            <label><input type="checkbox" id="includesCoxins" /> Inclui Coxins</label>
-            <label><input type="checkbox" id="includesBatentes" /> Inclui Batentes</label>
-            <label><input type="checkbox" id="includesMolas" /> Inclui Molas</label>
+          <!-- Estado do Artigo -->
+          <div class="form-row">
+            <label for="itemCondition">Condição do Artigo:</label>
+            <select id="itemCondition">
+              <option value="new">Novo</option>
+              <option value="used">Usado</option>
+            </select>
+          </div>
+          <!-- Código de Etiqueta (automático: Sem código) -->
+          <div class="form-row">
+            <label>Código de Etiqueta:</label>
+            <label><input type="radio" name="etiqueta" value="none" checked /> Sem código</label>
+          </div>
+          <!-- Código INMETRO -->
+          <div class="form-row">
+            <label for="inmetroCode">Código INMETRO:</label>
+            <input type="text" id="inmetroCode" placeholder="Clique em 'Gerar Código'" readonly />
+            <button type="button" id="btnGenerateInmetro" class="btn">Gerar Código INMETRO</button>
+          </div>
+          <!-- Características Secundárias -->
+          <fieldset>
+            <legend>Características Secundárias</legend>
+            <div class="form-row">
+              <label for="vehicleType">Tipo de Veículo:</label>
+              <input type="text" id="vehicleType" placeholder="Ex: Carro, Moto, etc." />
+            </div>
+            <div class="form-row">
+              <label for="vehiclePositions">Posições:</label>
+              <input type="text" id="vehiclePositions" placeholder="Ex: Frente, Traseira, etc." />
+            </div>
+            <div class="form-row checkbox-group">
+              <label><input type="checkbox" id="includesCoxins" /> Inclui Coxins</label>
+              <label><input type="checkbox" id="includesBatentes" /> Inclui Batentes</label>
+              <label><input type="checkbox" id="includesMolas" /> Inclui Molas</label>
+            </div>
+            <div class="form-row">
+              <label for="oemCode">Código OEM:</label>
+              <input type="text" id="oemCode" placeholder="Digite o Código OEM" />
+            </div>
+            <!-- Botão para Selecionar Veículos -->
+            <div class="form-row">
+              <button type="button" id="btnSelecionarVeiculos" class="btn">Selecionar Veículos</button>
+            </div>
+          </fieldset>
+          <!-- Informações Finais do Anúncio -->
+          <div class="form-row">
+            <label for="createPrice">Preço (R$):</label>
+            <input type="number" id="createPrice" placeholder="Digite o preço" required step="0.01" />
           </div>
           <div class="form-row">
-            <label for="oemCode">Código OEM:</label>
-            <input type="text" id="oemCode" placeholder="Digite o Código OEM" />
+            <label for="createQuantity">Quantidade:</label>
+            <input type="number" id="createQuantity" placeholder="Quantidade" value="1" />
           </div>
-          <!-- Botão para Selecionar Veículos -->
           <div class="form-row">
-            <button type="button" id="btnSelecionarVeiculos" class="btn">Selecionar Veículos</button>
+            <label for="createDescription">Descrição:</label>
+            <textarea id="createDescription" placeholder="Descrição detalhada do anúncio" required rows="4"></textarea>
           </div>
-        </fieldset>
-        <!-- Informações Finais do Anúncio -->
-        <div class="form-row">
-          <label for="createPrice">Preço (R$):</label>
-          <input type="number" id="createPrice" placeholder="Digite o preço" required step="0.01" />
-        </div>
-        <div class="form-row">
-          <label for="createQuantity">Quantidade:</label>
-          <input type="number" id="createQuantity" placeholder="Quantidade" value="1" />
-        </div>
-        <div class="form-row">
-          <label for="createDescription">Descrição:</label>
-          <textarea id="createDescription" placeholder="Descrição detalhada do anúncio" required rows="4"></textarea>
-        </div>
-        <div class="form-row">
-          <label for="createImages">Imagens:</label>
-          <input type="file" id="createImages" multiple accept="image/*" />
-        </div>
-        <button type="submit" class="btn">Criar Anúncio</button>
-      </form>
-      <div id="createAnuncioResult" style="margin-top:1rem;"></div>
-
-      <h2>Publicar Vários Anúncios</h2>
-      <button id="btnAdicionarAnuncio" class="btn">Adicionar Formulário de Anúncio</button>
-      <div id="anuncioFormsContainer"></div>
-      <div class="form-row">
-        <label for="guaranteeTime">Tempo de Garantia (meses):</label>
-        <input type="number" id="guaranteeTime" placeholder="Ex.: 12" value="0" />
+          <div class="form-row">
+            <label for="createImages">Imagens:</label>
+            <input type="file" id="createImages" multiple accept="image/*" />
+          </div>
+          <button type="submit" class="btn">Criar Anúncio</button>
+        </form>
+        <div id="createAnuncioResult" style="margin-top:1rem;"></div>
       </div>
-      <button id="btnPublicarVarios" class="btn">Publicar Todos</button>
-      <div id="resultMultiple" style="margin-top:1rem;"></div>
+
+      <!-- Collapsible Section: Publicar Vários Anúncios -->
+      <h2 class="section-header" data-target="multipleAds">Publicar Vários Anúncios</h2>
+      <div class="content" id="multipleAds">
+        <button id="btnAdicionarAnuncio" class="btn">Adicionar Formulário de Anúncio</button>
+        <div id="anuncioFormsContainer"></div>
+        <button id="btnPublicarVarios" class="btn">Publicar Todos</button>
+        <div id="resultMultiple" style="margin-top:1rem;"></div>
+      </div>
     </div>
 
     <!-- Modal para Seleção de Veículos -->
@@ -435,11 +464,20 @@
       </div>
     </div>
 
-    <footer>
+    <footer id="siteFooter">
       <p>© 2025 Mercado Livre Integration Demo</p>
     </footer>
 
     <script>
+      // Helper: Toggle Collapsible Sections
+      document.querySelectorAll(".section-header").forEach(header => {
+        header.addEventListener("click", function () {
+          const targetId = this.getAttribute("data-target");
+          const content = document.getElementById(targetId);
+          content.classList.toggle("active");
+        });
+      });
+
       // OAuth and API Configurations
       const CLIENT_ID = "SEU_CLIENT_ID";
       const CLIENT_SECRET = "SEU_CLIENT_SECRET"; // WARNING: Do not expose in production frontend.
@@ -526,6 +564,24 @@
         document.getElementById("appContainer").classList.remove("hidden");
       }
 
+      // Administração button: Prompt for password then allow editing header & footer texts.
+      document.getElementById("btnAdmin").addEventListener("click", function () {
+        const password = prompt("Digite a senha de administração:");
+        if (password === "Juhlindona20@") {
+          const newTitle = prompt("Digite o novo nome do site:", document.getElementById("siteTitle").innerText);
+          const newFooter = prompt("Digite o novo rodapé:", document.getElementById("siteFooter").innerText);
+          if (newTitle !== null) {
+            document.getElementById("siteTitle").innerText = newTitle;
+          }
+          if (newFooter !== null) {
+            document.getElementById("siteFooter").innerText = newFooter;
+          }
+          alert("Alterações realizadas com sucesso!");
+        } else {
+          alert("Senha incorreta!");
+        }
+      });
+
       // Event Listeners for OAuth and Test Login
       document.getElementById("btnLogin").addEventListener("click", iniciarAutenticacao);
       document.getElementById("btnTrocar").addEventListener("click", () => {
@@ -541,11 +597,8 @@
 
       // Function to simulate fetching automatic categories from Mercado Livre based on product name.
       function fetchAutomaticCategories(productName) {
-        // In a real scenario, here you would call the Mercado Livre API to get automatic categories.
-        // For simulation, we'll use a dummy promise.
         return new Promise((resolve) => {
           setTimeout(() => {
-            // Simulated categories based on product name:
             let categories = [];
             if (productName.toLowerCase().includes("computador")) {
               categories = ["Informática", "Eletrônicos", "Hardware"];
@@ -716,15 +769,7 @@
           }
           const imagens = await Promise.all(imagensPromises);
           try {
-            const response = await criarAnuncio(
-              titulo,
-              preco,
-              categoria_id,
-              descricao,
-              quantidade,
-              imagens,
-              { guarantee: guarantee }
-            );
+            const response = await criarAnuncio(titulo, preco, categoria_id, descricao, quantidade, imagens, { guarantee: guarantee });
             const data = await response.json();
             results.push(data);
           } catch (err) {

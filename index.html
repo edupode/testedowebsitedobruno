@@ -215,6 +215,39 @@
         color: #fff;
         margin-top: 2rem;
       }
+      /* Modal for Vehicle Selection */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding-top: 60px;
+      }
+      .modal-content {
+        background: #fff;
+        margin: 5% auto;
+        padding: 2rem;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 800px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      }
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close:hover {
+        color: #000;
+      }
     </style>
   </head>
   <body>
@@ -355,7 +388,7 @@
             <label for="createDescription">Descrição:</label>
             <textarea id="createDescription" placeholder="Descrição detalhada do anúncio" required rows="4"></textarea>
           </div>
-          <!-- Allow multi-photo selection (input already allows multiple photos) -->
+          <!-- Allow multi-photo selection -->
           <div class="form-row">
             <label for="createImages">Imagens (você pode selecionar várias):</label>
             <input type="file" id="createImages" multiple accept="image/*" />
@@ -375,7 +408,7 @@
       </div>
     </div>
 
-    <!-- Modal para Seleção de Veículos -->
+    <!-- Modal para Seleção de Veículos (outside all containers) -->
     <div id="modalVeiculos" class="modal">
       <div class="modal-content">
         <span class="close" id="closeModal">&times;</span>
@@ -485,9 +518,9 @@
         const title = localStorage.getItem("siteTitle");
         const subtitle = localStorage.getItem("siteSubTitle");
         const footer = localStorage.getItem("siteFooter");
-        if(title) document.getElementById("siteTitle").innerText = title;
-        if(subtitle) document.getElementById("siteSubTitle").innerText = subtitle;
-        if(footer) document.getElementById("siteFooter").innerText = footer;
+        if (title) document.getElementById("siteTitle").innerText = title;
+        if (subtitle) document.getElementById("siteSubTitle").innerText = subtitle;
+        if (footer) document.getElementById("siteFooter").innerText = footer;
       }
       loadAdminSettings();
 

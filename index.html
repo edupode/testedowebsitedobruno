@@ -1,124 +1,285 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Publicar Anúncios no Mercado Livre</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Anúncios Mercado Livre</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
-      background: #f4f4f4;
-    }
-    .container {
-      background: #fff;
-      padding: 2rem;
-      max-width: 600px;
-      margin: 0 auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    h1 {
-      text-align: center;
-    }
-    label {
-      display: block;
-      margin-top: 1rem;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      margin-top: 1rem;
-      padding: 10px;
-      background: #0077cc;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #005fa3;
-    }
-    #response {
-      white-space: pre-wrap;
-      background: #e9e9e9;
-      padding: 1rem;
-      border: 1px solid #ccc;
-      margin-top: 2rem;
-    }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 1200px; margin: 20px auto; background: #fff; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1, h2 { color: #333; }
+    button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+    input, select, textarea { margin: 5px; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #007acc; color: #fff; }
+    .hidden { display: none; }
+    #message { margin: 10px 0; color: green; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Publicar Anúncios no Mercado Livre</h1>
-    <form id="adForm">
-      <label for="title">Título do Anúncio:</label>
-      <input type="text" id="title" name="title" placeholder="Ex.: Bicicleta Nova" required>
-
-      <label for="description">Descrição:</label>
-      <textarea id="description" name="description" rows="5" placeholder="Descreva o produto..." required></textarea>
-
-      <label for="price">Preço (R$):</label>
-      <input type="number" id="price" name="price" step="0.01" placeholder="Ex.: 150.00" required>
-
-      <!-- Se desejar permitir a inclusão de imagens via URL -->
-      <label for="imageUrl">URL da Imagem (opcional):</label>
-      <input type="url" id="imageUrl" name="imageUrl" placeholder="https://exemplo.com/imagem.jpg">
-
-      <button type="submit">Publicar Anúncio</button>
-    </form>
-
-    <div id="response"></div>
+    <h1>Gerenciador de Anúncios Mercado Livre</h1>
+    <!-- Botão para iniciar login via OAuth2.0 -->
+    <button id="btnLogin">Login Mercado Livre</button>
+    <div id="message"></div>
+    <hr>
+    <!-- Seção para entrada manual do código OAuth (caso o fluxo automático precise) -->
+    <div id="authCodeSection" class="hidden">
+      <h3>Digite o código de autorização:</h3>
+      <input type="text" id="authCodeInput" placeholder="Código de autorização">
+      <button onclick="trocarCodigoPorToken(document.getElementById('authCodeInput').value)">Trocar código por token</button>
+    </div>
+    <hr>
+    <!-- Seção para carregar anúncios existentes -->
+    <section id="anunciosSection">
+      <h2>Anúncios Existentes</h2>
+      <button id="btnCarregarAnuncios">Carregar Anúncios</button>
+      <table id="tblAnuncios">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Preço (R$)</th>
+            <th>Quantidade</th>
+          </tr>
+        </thead>
+        <tbody id="bodyAnuncios"></tbody>
+      </table>
+    </section>
+    <hr>
+    <!-- Seção para criar novo anúncio -->
+    <section id="criarAnuncioSection">
+      <h2>Criar Anúncio</h2>
+      <form id="formCriarAnuncio">
+        <input type="text" id="createTitle" placeholder="Título" required><br>
+        <input type="number" id="createPrice" placeholder="Preço" required step="0.01"><br>
+        <input type="text" id="createCategory" placeholder="Categoria ID" required><br>
+        <textarea id="createDescription" placeholder="Descrição" required rows="4"></textarea><br>
+        <input type="number" id="createQuantity" placeholder="Quantidade" value="1"><br>
+        <input type="file" id="createImages" multiple accept="image/*"><br>
+        <button type="submit">Criar Anúncio</button>
+      </form>
+      <div id="createAnuncioResult"></div>
+    </section>
   </div>
-
   <script>
-    document.getElementById('adForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
+    // Configurações de autenticação e API
+    const CLIENT_ID = "SEU_CLIENT_ID";
+    const CLIENT_SECRET = "SEU_CLIENT_SECRET";
+    // Para o fluxo OAuth no browser, normalmente usamos uma URL de redirecionamento que pode ser uma página do próprio site.
+    // Aqui usamos o exemplo "http://localhost:8000", mas isso poderá variar conforme sua configuração.
+    const REDIRECT_URI = "http://localhost:8000";  
+    const AUTHORIZATION_URL = "https://auth.mercadolivre.com.br/authorization";
+    const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
+    let ACCESS_TOKEN = "SEU_ACCESS_TOKEN_AQUI";
+    let SELLER_ID = "SEU_SELLER_ID_AQUI";
+    const API_BASE = "https://api.mercadolibre.com";
 
-      // Captura os dados do formulário
-      const title = document.getElementById('title').value;
-      const description = document.getElementById('description').value;
-      const price = parseFloat(document.getElementById('price').value);
-      const imageUrl = document.getElementById('imageUrl').value;
+    // Função para exibir mensagens para o usuário
+    function displayMessage(msg) {
+      document.getElementById('message').innerText = msg;
+    }
 
-      // Monta a estrutura de dados para o anúncio conforme a API do Mercado Livre.
-      const adData = {
-        title: title,
-        category_id: "MLB5726", // Exemplo de categoria. Altere conforme necessário.
-        price: price,
-        currency_id: "BRL",
-        available_quantity: 1,
-        buying_mode: "buy_it_now",
-        condition: "new",
-        description: {
-          plain_text: description
-        },
-        pictures: imageUrl ? [{ source: imageUrl }] : []
-      };
+    // Inicia o fluxo OAuth abrindo uma nova janela
+    function iniciarAutenticacao() {
+      const params = new URLSearchParams({
+        response_type: "code",
+        client_id: CLIENT_ID,
+        redirect_uri: REDIRECT_URI
+      });
+      const authUrl = `${AUTHORIZATION_URL}?${params.toString()}`;
+      window.open(authUrl, "_blank");
+      displayMessage("Uma nova janela foi aberta para login. Após autenticar, copie o código de autorização e cole abaixo.");
+      document.getElementById('authCodeSection').classList.remove('hidden');
+    }
 
-      // Token de acesso obtido via OAuth para autenticação com a API do Mercado Livre.
-      // Substitua "YOUR_ACCESS_TOKEN_AQUI" pelo seu token válido.
-      const accessToken = "YOUR_ACCESS_TOKEN_AQUI";
+    // Troca o código de autorização por um token de acesso
+    function trocarCodigoPorToken(codigo) {
+      const payload = new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code: codigo,
+        redirect_uri: REDIRECT_URI
+      });
+      fetch(TOKEN_URL, {
+        method: 'POST',
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: payload.toString()
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.access_token) {
+          ACCESS_TOKEN = data.access_token;
+          SELLER_ID = data.user_id;
+          displayMessage("Autenticação realizada com sucesso!");
+          document.getElementById('authCodeSection').classList.add('hidden');
+        } else {
+          displayMessage("Erro na troca de código por token: " + JSON.stringify(data));
+        }
+      })
+      .catch(error => displayMessage("Erro: " + error));
+    }
 
-      try {
-        const response = await fetch("https://api.mercadolibre.com/items?access_token=" + accessToken, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(adData)
+    // Função para obter os anúncios existentes do vendedor
+    function obterAnunciosExistentes() {
+      const url = `${API_BASE}/users/${SELLER_ID}/items/search?access_token=${ACCESS_TOKEN}`;
+      fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.getElementById('bodyAnuncios');
+        tbody.innerHTML = "";
+        const itemIds = data.results || [];
+        itemIds.forEach(item_id => {
+          obterDetalhesAnuncio(item_id).then(detalhes => {
+            if (detalhes) {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `<td>${detalhes.id}</td>
+                              <td>${detalhes.title}</td>
+                              <td>${detalhes.price}</td>
+                              <td>${detalhes.available_quantity}</td>`;
+              tbody.appendChild(tr);
+            }
+          });
         });
+      })
+      .catch(error => displayMessage("Erro ao obter anúncios: " + error));
+    }
 
-        const result = await response.json();
-        document.getElementById('response').innerText = JSON.stringify(result, null, 2);
-      } catch (error) {
-        console.error("Erro ao publicar anúncio:", error);
-        document.getElementById('response').innerText = "Erro: " + error;
+    // Função para obter detalhes de um anúncio específico
+    function obterDetalhesAnuncio(item_id) {
+      const url = `${API_BASE}/items/${item_id}?access_token=${ACCESS_TOKEN}`;
+      return fetch(url)
+        .then(response => {
+          if(response.ok) return response.json();
+          else {
+            displayMessage("Erro ao obter detalhes do anúncio " + item_id);
+            return null;
+          }
+        });
+    }
+
+    // Função para atualizar um anúncio (exemplo de uso; para ser adaptado conforme a interface)
+    function atualizarAnuncio(item_id, titulo, preco, quantidade, descricao) {
+      const url = `${API_BASE}/items/${item_id}?access_token=${ACCESS_TOKEN}`;
+      const payload = {
+        title: titulo,
+        price: preco,
+        available_quantity: quantidade,
+        description: { plain_text: descricao }
+      };
+      return fetch(url, {
+        method: 'PUT',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    // Função para criar um anúncio
+    function criarAnuncio(titulo, preco, categoria_id, descricao, quantidade = 1, imagens = []) {
+      const url = `${API_BASE}/items?access_token=${ACCESS_TOKEN}`;
+      const payload = {
+        title: titulo,
+        price: preco,
+        currency_id: "BRL",
+        available_quantity: quantidade,
+        buying_mode: "buy_it_now",
+        listing_type_id: "gold_pro",
+        condition: "new",
+        category_id: categoria_id,
+        description: { plain_text: descricao },
+        pictures: imagens.map(src => ({ source: src }))
+      };
+      return fetch(url, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    // Função para obter categorias do Mercado Livre
+    function obterCategoriasMercadoLivre() {
+      const url = `${API_BASE}/sites/MLB/categories`;
+      return fetch(url).then(response => response.json());
+    }
+
+    // Faz upload de uma imagem e retorna a URL segura
+    function enviarImagemMercadoLivre(file) {
+      const url = `${API_BASE}/pictures?access_token=${ACCESS_TOKEN}`;
+      const formData = new FormData();
+      formData.append("file", file, file.name);
+      return fetch(url, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.secure_url) {
+          return data.secure_url;
+        } else {
+          displayMessage("Falha no upload da imagem: " + JSON.stringify(data));
+          return null;
+        }
+      });
+    }
+
+    // Função para obter pedidos do vendedor
+    function obterPedidosVendedor() {
+      const url = `${API_BASE}/orders/search?seller=${SELLER_ID}&access_token=${ACCESS_TOKEN}`;
+      return fetch(url).then(response => response.json());
+    }
+
+    // Função para obter detalhes de um pedido
+    function obterDetalhesPedido(order_id) {
+      const url = `${API_BASE}/orders/${order_id}?access_token=${ACCESS_TOKEN}`;
+      return fetch(url).then(response => response.json());
+    }
+
+    // Função para obter informações de envio
+    function obterInformacaoEnvio(shipment_id) {
+      const url = `${API_BASE}/shipments/${shipment_id}?access_token=${ACCESS_TOKEN}`;
+      return fetch(url).then(response => response.json());
+    }
+
+    // Função simulada para obter lista de veículos
+    function obterListaVeiculosMercadoLivre() {
+      return [
+          { marca: "Ford", modelo: "Fiesta", ano: "2015", versao: "1.6 SE", motor: "1.6", combustivel: "Gasolina", potencia: "115cv", carroceria: "Hatch", transmissao: "Automática", cambio: "Powershift", portas: "4", direcao: "Hidráulica", tracao: "Dianteira", valvulas: "16" },
+          { marca: "Chevrolet", modelo: "Onix", ano: "2020", versao: "LTZ", motor: "1.0 Turbo", combustivel: "Gasolina/Etanol", potencia: "116cv", carroceria: "Hatch", transmissao: "Automática", cambio: "6 marchas", portas: "4", direcao: "Elétrica", tracao: "Dianteira", valvulas: "12" }
+      ];
+    }
+
+    // Event listeners para os botões e formulários
+    document.getElementById('btnLogin').addEventListener('click', iniciarAutenticacao);
+    document.getElementById('btnCarregarAnuncios').addEventListener('click', obterAnunciosExistentes);
+    
+    document.getElementById('formCriarAnuncio').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const titulo = document.getElementById('createTitle').value;
+      const preco = parseFloat(document.getElementById('createPrice').value);
+      const categoria_id = document.getElementById('createCategory').value;
+      const descricao = document.getElementById('createDescription').value;
+      const quantidade = parseInt(document.getElementById('createQuantity').value) || 1;
+      const imagesFiles = document.getElementById('createImages').files;
+
+      const imagensPromises = [];
+      for (let i = 0; i < imagesFiles.length; i++) {
+        imagensPromises.push(enviarImagemMercadoLivre(imagesFiles[i]));
       }
+      Promise.all(imagensPromises).then(imagens => {
+        criarAnuncio(titulo, preco, categoria_id, descricao, quantidade, imagens)
+          .then(response => response.json())
+          .then(data => {
+            if (data.id) {
+              document.getElementById('createAnuncioResult').innerText = 
+                "Anúncio criado com sucesso! ID: " + data.id;
+            } else {
+              document.getElementById('createAnuncioResult').innerText = 
+                "Erro ao criar anúncio: " + JSON.stringify(data);
+            }
+          });
+      });
     });
   </script>
 </body>

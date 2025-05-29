@@ -5,18 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mercado Livre - Publicar Anúncio com Login OAuth</title>
     <style>
-      /* Reset and common styles */
+      /* Variáveis de Cor e Fontes */
+      :root {
+        --primary-color: #145da0;
+        --secondary-color: #4a90e2;
+        --accent-color: #8dd08d;
+        --error-color: #f08080;
+        --background-gradient: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      /* Reset e Estilos Básicos */
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
       body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #4a90e2, #145da0);
+        font-family: var(--font-family);
+        background: var(--background-gradient);
         color: #333;
         min-height: 100vh;
         padding: 20px;
+        line-height: 1.6;
       }
       header {
         text-align: center;
@@ -24,8 +34,12 @@
         color: #fff;
       }
       header h1 {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
+        font-size: 2.8rem;
+        margin-bottom: 0.3rem;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+      }
+      header p {
+        font-size: 1.2rem;
       }
       /* Containers */
       .container {
@@ -35,11 +49,17 @@
         max-width: 900px;
         width: 100%;
         margin: 0 auto 2rem;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease;
+      }
+      .container:hover {
+        transform: scale(1.01);
       }
       h2 {
         margin-bottom: 1.5rem;
-        color: #145da0;
+        color: var(--primary-color);
+        border-bottom: 2px solid var(--secondary-color);
+        padding-bottom: 0.3rem;
       }
       .form-row {
         margin-bottom: 1rem;
@@ -48,6 +68,7 @@
         display: block;
         margin-bottom: 0.3rem;
         font-weight: bold;
+        color: var(--primary-color);
       }
       input[type="text"],
       input[type="number"],
@@ -58,12 +79,13 @@
         padding: 0.6rem;
         border: 1px solid #ccc;
         border-radius: 6px;
+        transition: border-color 0.3s ease;
       }
       input:focus,
       textarea:focus,
       select:focus {
         outline: none;
-        border-color: #145da0;
+        border-color: var(--primary-color);
       }
       fieldset {
         border: 1px solid #ddd;
@@ -75,10 +97,11 @@
         padding: 0 0.5rem;
         font-size: 1.1rem;
         font-weight: bold;
+        color: var(--primary-color);
       }
       .btn {
         display: inline-block;
-        background: linear-gradient(135deg, #145da0, #4a90e2);
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
         color: #fff;
         padding: 0.75rem 1.5rem;
         border: none;
@@ -90,7 +113,7 @@
         margin-top: 0.5rem;
       }
       .btn:hover {
-        background: linear-gradient(135deg, #4a90e2, #145da0);
+        background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
         transform: translateY(-2px);
       }
       .checkbox-group label {
@@ -105,13 +128,13 @@
         padding: 0.75rem;
         border-radius: 8px;
         background-color: #e0f8e9;
-        border: 1px solid #8dd08d;
+        border: 1px solid var(--accent-color);
         color: #2e7d32;
       }
       .error {
         background-color: #fce8e6;
-        border: 1px solid #f08080;
-        color: #c62828;
+        border: 1px solid var(--error-color);
+        color: var(--error-color);
       }
       footer {
         text-align: center;
@@ -177,7 +200,7 @@
       <div id="message" class="message hidden"></div>
       <button id="btnLogin" class="btn">Login com Mercado Livre</button>
       <!-- Test Login Button -->
-      <button id="btnTestLogin" class="btn">Login de Teste</button>
+      <button id="btnTestLogin" class="btn">Login de Teste (Sem conta)</button>
       <div id="authCodeSection" class="hidden">
         <p>Se o redirecionamento não funcionar, cole o código de autorização:</p>
         <input type="text" id="authCodeInput" placeholder="Código de autorização" />
@@ -452,6 +475,7 @@
             showMessage("Autenticação realizada com sucesso!");
             document.getElementById("authCodeSection").classList.add("hidden");
             document.getElementById("btnLogin").classList.add("hidden");
+            document.getElementById("btnTestLogin").classList.add("hidden");
             document.getElementById("loginStatus").classList.remove("hidden");
             document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
             document.getElementById("appContainer").classList.remove("hidden");
@@ -472,9 +496,8 @@
         }
       }
 
-      // Test Login Functionality
+      // Test Login Functionality (login sem conta Mercado Livre)
       function testLogin() {
-        // Set dummy credentials for test login
         ACCESS_TOKEN = "TEST_TOKEN";
         SELLER_ID = "TEST_SELLER";
         showMessage("Login de teste realizado com sucesso!");

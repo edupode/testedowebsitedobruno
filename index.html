@@ -3,12 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mercado Livre - Publicar Anúncio</title>
+    <title>Mercado Livre - Publicar Anúncio com Login OAuth</title>
     <style>
-      /* Reset e fontes */
+      /* Reset and common styles */
       * {
-        margin: 0;
-        padding: 0;
+        margin: 0; padding: 0;
         box-sizing: border-box;
       }
       body {
@@ -27,11 +26,13 @@
         font-size: 2.5rem;
         margin-bottom: 0.5rem;
       }
+      /* Containers */
       .container {
         background-color: #fff;
         border-radius: 12px;
         padding: 2rem;
         max-width: 900px;
+        width: 100%;
         margin: 0 auto 2rem;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
       }
@@ -95,7 +96,28 @@
         font-weight: normal;
         margin-right: 1rem;
       }
-      /* Modal de Seleção de Veículos */
+      .hidden {
+        display: none;
+      }
+      .message {
+        margin: 1rem 0;
+        padding: 0.75rem;
+        border-radius: 8px;
+        background-color: #e0f8e9;
+        border: 1px solid #8dd08d;
+        color: #2e7d32;
+      }
+      .error {
+        background-color: #fce8e6;
+        border: 1px solid #f08080;
+        color: #c62828;
+      }
+      footer {
+        text-align: center;
+        color: #fff;
+        margin-top: 2rem;
+      }
+      /* Modal for Vehicle Selection */
       .modal {
         display: none;
         position: fixed;
@@ -105,7 +127,7 @@
         width: 100%;
         height: 100%;
         overflow-y: auto;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0,0,0,0.5);
         padding-top: 60px;
       }
       .modal-content {
@@ -141,23 +163,34 @@
       th {
         background: #f2f2f2;
       }
-      footer {
-        text-align: center;
-        color: #fff;
-        margin-top: 2rem;
-      }
     </style>
   </head>
   <body>
     <header>
       <h1>Mercado Livre - Publicar Anúncio</h1>
-      <p>Gerencie e publique seus anúncios com facilidade</p>
+      <p>Integrando Login OAuth com funcionalidades avançadas</p>
     </header>
 
-    <div class="container" id="publicarAnuncio">
+    <!-- LOGIN SECTION -->
+    <div class="container" id="loginContainer">
+      <div id="message" class="message hidden"></div>
+      <button id="btnLogin" class="btn">Login com Mercado Livre</button>
+      <div id="authCodeSection" class="hidden">
+        <p>Se o redirecionamento não funcionar, cole o código de autorização:</p>
+        <input type="text" id="authCodeInput" placeholder="Código de autorização" />
+        <button id="btnTrocar" class="btn">Trocar Código por Token</button>
+      </div>
+      <div id="loginStatus" class="hidden" style="margin-top: 1rem;">
+        <p><strong>Logado com sucesso!</strong></p>
+        <p id="userData"></p>
+      </div>
+    </div>
+
+    <!-- MAIN APPLICATION: VISIBLE only after login -->
+    <div class="container hidden" id="appContainer">
       <h2>Criar Anúncio Único</h2>
       <form id="formCriarAnuncio">
-        <!-- Seleção de Artigo -->
+        <!-- Tipo de Artigo (padrão: Produtos) -->
         <div class="form-row">
           <label for="primaryCategory">Tipo de Artigo:</label>
           <select id="primaryCategory">
@@ -172,7 +205,7 @@
           <label for="createTitle">Nome do Produto:</label>
           <input type="text" id="createTitle" placeholder="Digite o nome do produto" required />
         </div>
-        <!-- Categorias Múltiplas -->
+        <!-- Categorias Múltiplas (Checkboxes) -->
         <fieldset>
           <legend>Categorias (Selecione uma ou mais)</legend>
           <div class="checkbox-group" id="siteCategories">
@@ -182,7 +215,7 @@
             <label><input type="checkbox" class="site-category" value="Categoria 4" /> Categoria 4</label>
           </div>
         </fieldset>
-        <!-- Marca e Número da Peça (Obrigatórios) -->
+        <!-- Marca e Número da Peça -->
         <div class="form-row">
           <label for="createBrand">Marca:</label>
           <input type="text" id="createBrand" placeholder="Digite a marca" required />
@@ -199,11 +232,12 @@
             <option value="used">Usado</option>
           </select>
         </div>
-        <!-- Código de Etiqueta e INMETRO -->
+        <!-- Código de Etiqueta (automático: Sem código) -->
         <div class="form-row">
           <label>Código de Etiqueta:</label>
           <label><input type="radio" name="etiqueta" value="none" checked /> Sem código</label>
         </div>
+        <!-- Código INMETRO -->
         <div class="form-row">
           <label for="inmetroCode">Código INMETRO:</label>
           <input type="text" id="inmetroCode" placeholder="Clique em 'Gerar Código'" readonly />
@@ -231,9 +265,7 @@
           </div>
           <!-- Botão para Selecionar Veículos -->
           <div class="form-row">
-            <button type="button" id="btnSelecionarVeiculos" class="btn">
-              Selecionar Veículos
-            </button>
+            <button type="button" id="btnSelecionarVeiculos" class="btn">Selecionar Veículos</button>
           </div>
         </fieldset>
         <!-- Informações Finais do Anúncio -->
@@ -256,10 +288,7 @@
         <button type="submit" class="btn">Criar Anúncio</button>
       </form>
       <div id="createAnuncioResult" style="margin-top:1rem;"></div>
-    </div>
 
-    <!-- Área de Publicação de Vários Anúncios -->
-    <div class="container" id="publicarVariosContainer">
       <h2>Publicar Vários Anúncios</h2>
       <button id="btnAdicionarAnuncio" class="btn">Adicionar Formulário de Anúncio</button>
       <div id="anuncioFormsContainer"></div>
@@ -357,7 +386,7 @@
             </tr>
           </thead>
           <tbody id="bodyVeiculos">
-            <!-- Dados de veículos serão carregados dinamicamente -->
+            <!-- Vehicle data will be loaded dynamically -->
           </tbody>
         </table>
       </div>
@@ -368,9 +397,9 @@
     </footer>
 
     <script>
-      // Configurações OAuth e API
-      const CLIENT_ID = "SEU_CLIENT_ID"; 
-      const CLIENT_SECRET = "SEU_CLIENT_SECRET";
+      // OAuth and API Configurations
+      const CLIENT_ID = "SEU_CLIENT_ID";
+      const CLIENT_SECRET = "SEU_CLIENT_SECRET"; // WARNING: Do not expose in production frontend.
       const REDIRECT_URI = window.location.origin;
       const AUTHORIZATION_URL = "https://auth.mercadolivre.com.br/authorization";
       const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
@@ -394,9 +423,10 @@
         });
         const authUrl = `${AUTHORIZATION_URL}?${params.toString()}`;
         window.open(authUrl, "_blank");
-        showMessage("Abra a janela de login, autorize e cole o código de autorização se necessário.");
+        showMessage("Uma nova janela foi aberta para login. Após autorizar, insira o código se necessário.");
         document.getElementById("authCodeSection").classList.remove("hidden");
       }
+
       function trocarCodigoPorToken(codigo) {
         const payload = new URLSearchParams({
           grant_type: "authorization_code",
@@ -410,22 +440,25 @@
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: payload.toString()
         })
-          .then(response => response.json())
-          .then(data => {
-            if (data.access_token) {
-              ACCESS_TOKEN = data.access_token;
-              SELLER_ID = data.user_id;
-              showMessage("Autenticação realizada com sucesso!");
-              document.getElementById("authCodeSection").classList.add("hidden");
-              document.getElementById("btnLogin").classList.add("hidden");
-              document.getElementById("loginStatus").classList.remove("hidden");
-              document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
-            } else {
-              showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
-            }
-          })
-          .catch(error => showMessage("Erro: " + error, true));
+        .then(response => response.json())
+        .then(data => {
+          if (data.access_token) {
+            ACCESS_TOKEN = data.access_token;
+            SELLER_ID = data.user_id;
+            showMessage("Autenticação realizada com sucesso!");
+            document.getElementById("authCodeSection").classList.add("hidden");
+            document.getElementById("btnLogin").classList.add("hidden");
+            document.getElementById("loginStatus").classList.remove("hidden");
+            document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
+            // Exibe o container principal da aplicação após login
+            document.getElementById("appContainer").classList.remove("hidden");
+          } else {
+            showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
+          }
+        })
+        .catch(error => showMessage("Erro: " + error, true));
       }
+
       function checkForAuthCode() {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get("code");
@@ -436,13 +469,18 @@
         }
       }
 
-      // Geração de código INMETRO
-      document.getElementById("btnGenerateInmetro").addEventListener("click", () => {
-        const generatedCode = "INM-" + Math.floor(Math.random() * 1000000);
-        document.getElementById("inmetroCode").value = generatedCode;
+      document.getElementById("btnLogin").addEventListener("click", iniciarAutenticacao);
+      document.getElementById("btnTrocar").addEventListener("click", () => {
+        const codeInput = document.getElementById("authCodeInput").value.trim();
+        if (codeInput) {
+          trocarCodigoPorToken(codeInput);
+        } else {
+          showMessage("Por favor, insira o código de autorização.", true);
+        }
       });
+      window.onload = checkForAuthCode;
 
-      // Criar Anúncio Único
+      // Functions for Creating Announcements
       document.getElementById("formCriarAnuncio").addEventListener("submit", function(e) {
         e.preventDefault();
         const titulo = document.getElementById("createTitle").value;
@@ -524,7 +562,7 @@
           });
       }
 
-      // Lógica para "Publicar Vários Anúncios"
+      // Publicar Vários Anúncios
       const anuncioFormsContainer = document.getElementById("anuncioFormsContainer");
       document.getElementById("btnAdicionarAnuncio").addEventListener("click", () => {
         const formDiv = document.createElement("div");
@@ -611,14 +649,12 @@
         modal.style.display = "block";
         carregarVeiculos();
       });
-      spanClose.addEventListener("click", () => {
-        modal.style.display = "none";
-      });
+      spanClose.addEventListener("click", () => { modal.style.display = "none"; });
       window.addEventListener("click", (event) => {
         if (event.target == modal) modal.style.display = "none";
       });
       function carregarVeiculos() {
-        // Simulação de dados obtidos via API do Mercado Livre.
+        // Simulated data retrieval from Mercado Livre API
         const veiculos = [
           { marca: "Ford", modelo: "Fiesta", ano: "2015", versao: "1.6 SE", motor: "1.6", combustivel: "Gasolina", potencia: "115cv", carroceria: "Hatch", transmissao: "Automática", cambio: "Powershift", portas: "4", direcao: "Hidráulica", tracao: "Dianteira", valvulas: "16" },
           { marca: "Chevrolet", modelo: "Onix", ano: "2020", versao: "LTZ", motor: "1.0 Turbo", combustivel: "Gasolina/Etanol", potencia: "116cv", carroceria: "Hatch", transmissao: "Automática", cambio: "6 marchas", portas: "4", direcao: "Elétrica", tracao: "Dianteira", valvulas: "12" }
@@ -644,7 +680,6 @@
           tbody.appendChild(tr);
         });
       }
-      window.onload = checkForAuthCode;
     </script>
   </body>
 </html>

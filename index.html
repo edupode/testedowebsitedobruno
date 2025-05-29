@@ -1,286 +1,210 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerenciador de Anúncios Mercado Livre</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 1200px; margin: 20px auto; background: #fff; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h1, h2 { color: #333; }
-    button { padding: 10px 15px; margin: 5px; cursor: pointer; }
-    input, select, textarea { margin: 5px; padding: 5px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background: #007acc; color: #fff; }
-    .hidden { display: none; }
-    #message { margin: 10px 0; color: green; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Gerenciador de Anúncios Mercado Livre</h1>
-    <!-- Botão para iniciar login via OAuth2.0 -->
-    <button id="btnLogin">Login Mercado Livre</button>
-    <div id="message"></div>
-    <hr>
-    <!-- Seção para entrada manual do código OAuth (caso o fluxo automático precise) -->
-    <div id="authCodeSection" class="hidden">
-      <h3>Digite o código de autorização:</h3>
-      <input type="text" id="authCodeInput" placeholder="Código de autorização">
-      <button onclick="trocarCodigoPorToken(document.getElementById('authCodeInput').value)">Trocar código por token</button>
-    </div>
-    <hr>
-    <!-- Seção para carregar anúncios existentes -->
-    <section id="anunciosSection">
-      <h2>Anúncios Existentes</h2>
-      <button id="btnCarregarAnuncios">Carregar Anúncios</button>
-      <table id="tblAnuncios">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Título</th>
-            <th>Preço (R$)</th>
-            <th>Quantidade</th>
-          </tr>
-        </thead>
-        <tbody id="bodyAnuncios"></tbody>
-      </table>
-    </section>
-    <hr>
-    <!-- Seção para criar novo anúncio -->
-    <section id="criarAnuncioSection">
-      <h2>Criar Anúncio</h2>
-      <form id="formCriarAnuncio">
-        <input type="text" id="createTitle" placeholder="Título" required><br>
-        <input type="number" id="createPrice" placeholder="Preço" required step="0.01"><br>
-        <input type="text" id="createCategory" placeholder="Categoria ID" required><br>
-        <textarea id="createDescription" placeholder="Descrição" required rows="4"></textarea><br>
-        <input type="number" id="createQuantity" placeholder="Quantidade" value="1"><br>
-        <input type="file" id="createImages" multiple accept="image/*"><br>
-        <button type="submit">Criar Anúncio</button>
-      </form>
-      <div id="createAnuncioResult"></div>
-    </section>
-  </div>
-  <script>
-    // Configurações de autenticação e API
-    const CLIENT_ID = "SEU_CLIENT_ID";
-    const CLIENT_SECRET = "SEU_CLIENT_SECRET";
-    // Para o fluxo OAuth no browser, normalmente usamos uma URL de redirecionamento que pode ser uma página do próprio site.
-    // Aqui usamos o exemplo "http://localhost:8000", mas isso poderá variar conforme sua configuração.
-    const REDIRECT_URI = "http://localhost:8000";  
-    const AUTHORIZATION_URL = "https://auth.mercadolivre.com.br/authorization";
-    const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
-    let ACCESS_TOKEN = "SEU_ACCESS_TOKEN_AQUI";
-    let SELLER_ID = "SEU_SELLER_ID_AQUI";
-    const API_BASE = "https://api.mercadolibre.com";
-
-    // Função para exibir mensagens para o usuário
-    function displayMessage(msg) {
-      document.getElementById('message').innerText = msg;
-    }
-
-    // Inicia o fluxo OAuth abrindo uma nova janela
-    function iniciarAutenticacao() {
-      const params = new URLSearchParams({
-        response_type: "code",
-        client_id: CLIENT_ID,
-        redirect_uri: REDIRECT_URI
-      });
-      const authUrl = `${AUTHORIZATION_URL}?${params.toString()}`;
-      window.open(authUrl, "_blank");
-      displayMessage("Uma nova janela foi aberta para login. Após autenticar, copie o código de autorização e cole abaixo.");
-      document.getElementById('authCodeSection').classList.remove('hidden');
-    }
-
-    // Troca o código de autorização por um token de acesso
-    function trocarCodigoPorToken(codigo) {
-      const payload = new URLSearchParams({
-        grant_type: "authorization_code",
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        code: codigo,
-        redirect_uri: REDIRECT_URI
-      });
-      fetch(TOKEN_URL, {
-        method: 'POST',
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: payload.toString()
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.access_token) {
-          ACCESS_TOKEN = data.access_token;
-          SELLER_ID = data.user_id;
-          displayMessage("Autenticação realizada com sucesso!");
-          document.getElementById('authCodeSection').classList.add('hidden');
-        } else {
-          displayMessage("Erro na troca de código por token: " + JSON.stringify(data));
-        }
-      })
-      .catch(error => displayMessage("Erro: " + error));
-    }
-
-    // Função para obter os anúncios existentes do vendedor
-    function obterAnunciosExistentes() {
-      const url = `${API_BASE}/users/${SELLER_ID}/items/search?access_token=${ACCESS_TOKEN}`;
-      fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        const tbody = document.getElementById('bodyAnuncios');
-        tbody.innerHTML = "";
-        const itemIds = data.results || [];
-        itemIds.forEach(item_id => {
-          obterDetalhesAnuncio(item_id).then(detalhes => {
-            if (detalhes) {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `<td>${detalhes.id}</td>
-                              <td>${detalhes.title}</td>
-                              <td>${detalhes.price}</td>
-                              <td>${detalhes.available_quantity}</td>`;
-              tbody.appendChild(tr);
-            }
-          });
-        });
-      })
-      .catch(error => displayMessage("Erro ao obter anúncios: " + error));
-    }
-
-    // Função para obter detalhes de um anúncio específico
-    function obterDetalhesAnuncio(item_id) {
-      const url = `${API_BASE}/items/${item_id}?access_token=${ACCESS_TOKEN}`;
-      return fetch(url)
-        .then(response => {
-          if(response.ok) return response.json();
-          else {
-            displayMessage("Erro ao obter detalhes do anúncio " + item_id);
-            return null;
-          }
-        });
-    }
-
-    // Função para atualizar um anúncio (exemplo de uso; para ser adaptado conforme a interface)
-    function atualizarAnuncio(item_id, titulo, preco, quantidade, descricao) {
-      const url = `${API_BASE}/items/${item_id}?access_token=${ACCESS_TOKEN}`;
-      const payload = {
-        title: titulo,
-        price: preco,
-        available_quantity: quantidade,
-        description: { plain_text: descricao }
-      };
-      return fetch(url, {
-        method: 'PUT',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-    }
-
-    // Função para criar um anúncio
-    function criarAnuncio(titulo, preco, categoria_id, descricao, quantidade = 1, imagens = []) {
-      const url = `${API_BASE}/items?access_token=${ACCESS_TOKEN}`;
-      const payload = {
-        title: titulo,
-        price: preco,
-        currency_id: "BRL",
-        available_quantity: quantidade,
-        buying_mode: "buy_it_now",
-        listing_type_id: "gold_pro",
-        condition: "new",
-        category_id: categoria_id,
-        description: { plain_text: descricao },
-        pictures: imagens.map(src => ({ source: src }))
-      };
-      return fetch(url, {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-    }
-
-    // Função para obter categorias do Mercado Livre
-    function obterCategoriasMercadoLivre() {
-      const url = `${API_BASE}/sites/MLB/categories`;
-      return fetch(url).then(response => response.json());
-    }
-
-    // Faz upload de uma imagem e retorna a URL segura
-    function enviarImagemMercadoLivre(file) {
-      const url = `${API_BASE}/pictures?access_token=${ACCESS_TOKEN}`;
-      const formData = new FormData();
-      formData.append("file", file, file.name);
-      return fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if(data.secure_url) {
-          return data.secure_url;
-        } else {
-          displayMessage("Falha no upload da imagem: " + JSON.stringify(data));
-          return null;
-        }
-      });
-    }
-
-    // Função para obter pedidos do vendedor
-    function obterPedidosVendedor() {
-      const url = `${API_BASE}/orders/search?seller=${SELLER_ID}&access_token=${ACCESS_TOKEN}`;
-      return fetch(url).then(response => response.json());
-    }
-
-    // Função para obter detalhes de um pedido
-    function obterDetalhesPedido(order_id) {
-      const url = `${API_BASE}/orders/${order_id}?access_token=${ACCESS_TOKEN}`;
-      return fetch(url).then(response => response.json());
-    }
-
-    // Função para obter informações de envio
-    function obterInformacaoEnvio(shipment_id) {
-      const url = `${API_BASE}/shipments/${shipment_id}?access_token=${ACCESS_TOKEN}`;
-      return fetch(url).then(response => response.json());
-    }
-
-    // Função simulada para obter lista de veículos
-    function obterListaVeiculosMercadoLivre() {
-      return [
-          { marca: "Ford", modelo: "Fiesta", ano: "2015", versao: "1.6 SE", motor: "1.6", combustivel: "Gasolina", potencia: "115cv", carroceria: "Hatch", transmissao: "Automática", cambio: "Powershift", portas: "4", direcao: "Hidráulica", tracao: "Dianteira", valvulas: "16" },
-          { marca: "Chevrolet", modelo: "Onix", ano: "2020", versao: "LTZ", motor: "1.0 Turbo", combustivel: "Gasolina/Etanol", potencia: "116cv", carroceria: "Hatch", transmissao: "Automática", cambio: "6 marchas", portas: "4", direcao: "Elétrica", tracao: "Dianteira", valvulas: "12" }
-      ];
-    }
-
-    // Event listeners para os botões e formulários
-    document.getElementById('btnLogin').addEventListener('click', iniciarAutenticacao);
-    document.getElementById('btnCarregarAnuncios').addEventListener('click', obterAnunciosExistentes);
-    
-    document.getElementById('formCriarAnuncio').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const titulo = document.getElementById('createTitle').value;
-      const preco = parseFloat(document.getElementById('createPrice').value);
-      const categoria_id = document.getElementById('createCategory').value;
-      const descricao = document.getElementById('createDescription').value;
-      const quantidade = parseInt(document.getElementById('createQuantity').value) || 1;
-      const imagesFiles = document.getElementById('createImages').files;
-
-      const imagensPromises = [];
-      for (let i = 0; i < imagesFiles.length; i++) {
-        imagensPromises.push(enviarImagemMercadoLivre(imagesFiles[i]));
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+    />
+    <title>Mercado Livre - Login e Gerenciamento</title>
+    <style>
+      /* Reset básico */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
-      Promise.all(imagensPromises).then(imagens => {
-        criarAnuncio(titulo, preco, categoria_id, descricao, quantidade, imagens)
-          .then(response => response.json())
-          .then(data => {
-            if (data.id) {
-              document.getElementById('createAnuncioResult').innerText = 
-                "Anúncio criado com sucesso! ID: " + data.id;
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(to right, #007acc, #00c6ff);
+        color: #333;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      header {
+        width: 100%;
+        padding: 1rem;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+      }
+      header h1 {
+        color: #007acc;
+      }
+      .container {
+        background: #fff;
+        width: 90%;
+        max-width: 600px;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .btn {
+        display: inline-block;
+        background: #007acc;
+        color: #fff;
+        padding: 0.75rem 1.25rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.3s ease;
+        text-decoration: none;
+      }
+      .btn:hover {
+        background: #005fa3;
+      }
+      .hidden {
+        display: none;
+      }
+      .message {
+        margin: 1rem 0;
+        padding: 0.75rem;
+        border-radius: 4px;
+        background-color: #e7f4e4;
+        border: 1px solid #a7d7a7;
+        color: #2e7d32;
+      }
+      .error {
+        background-color: #f9d6d5;
+        border: 1px solid #f08080;
+        color: #c62828;
+      }
+      footer {
+        margin-top: 2rem;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Mercado Livre OAuth Login</h1>
+    </header>
+    <div class="container">
+      <div id="message" class="message hidden"></div>
+      <!-- Botão de Login -->
+      <button id="btnLogin" class="btn">Login com Mercado Livre</button>
+      <!-- Seção para autenticação manual -->
+      <div id="authCodeSection" class="hidden">
+        <p>Se o redirecionamento não funcionar, cole o código de autorização:</p>
+        <input
+          type="text"
+          id="authCodeInput"
+          placeholder="Código de autorização"
+          style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"
+        />
+        <button id="btnTrocar" class="btn">Trocar Código por Token</button>
+      </div>
+      <!-- Área de status do login -->
+      <div id="loginStatus" class="hidden" style="margin-top: 1rem;">
+        <p><strong>Logado com sucesso!</strong></p>
+        <p id="userData"></p>
+      </div>
+    </div>
+    <footer>
+      <p>© 2025 Mercado Livre Integration Demo</p>
+    </footer>
+    <script>
+      // Configurações de OAuth e API
+      const CLIENT_ID = "SEU_CLIENT_ID";       // Substitua pelo seu Client ID
+      const CLIENT_SECRET = "SEU_CLIENT_SECRET"; // Substitua pelo seu Client Secret (NÃO use isso em produção no browser)
+      const REDIRECT_URI = window.location.origin; // Use a própria URL para capturar o código
+      const AUTHORIZATION_URL = "https://auth.mercadolivre.com.br/authorization";
+      const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
+
+      let ACCESS_TOKEN = "";
+      let SELLER_ID = "";
+
+      // Exibe mensagens de status para o usuário
+      function showMessage(msg, isError = false) {
+        const messageDiv = document.getElementById("message");
+        messageDiv.innerText = msg;
+        messageDiv.className = isError ? "message error" : "message";
+        messageDiv.classList.remove("hidden");
+      }
+
+      // Inicia o fluxo OAuth abrindo uma nova janela para login
+      function iniciarAutenticacao() {
+        // Constrói a URL de autorização com os parâmetros
+        const params = new URLSearchParams({
+          response_type: "code",
+          client_id: CLIENT_ID,
+          redirect_uri: REDIRECT_URI,
+        });
+        const authUrl = `${AUTHORIZATION_URL}?${params.toString()}`;
+        // Abre a URL em uma nova janela
+        window.open(authUrl, "_blank");
+        showMessage(
+          "Abra a janela de login, autorize e depois cole o código na área abaixo se não for redirecionado automaticamente."
+        );
+        document.getElementById("authCodeSection").classList.remove("hidden");
+      }
+
+      // Troca o código de autorização por um token de acesso
+      function trocarCodigoPorToken(codigo) {
+        const payload = new URLSearchParams({
+          grant_type: "authorization_code",
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+          code: codigo,
+          redirect_uri: REDIRECT_URI,
+        });
+
+        fetch(TOKEN_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: payload.toString(),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.access_token) {
+              ACCESS_TOKEN = data.access_token;
+              SELLER_ID = data.user_id;
+              showMessage("Autenticação realizada com sucesso!");
+              document.getElementById("authCodeSection").classList.add("hidden");
+              document.getElementById("btnLogin").classList.add("hidden");
+              // Mostra os dados do usuário logado na interface
+              document.getElementById("loginStatus").classList.remove("hidden");
+              document.getElementById(
+                "userData"
+              ).innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
             } else {
-              document.getElementById('createAnuncioResult').innerText = 
-                "Erro ao criar anúncio: " + JSON.stringify(data);
+              showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
             }
+          })
+          .catch((error) => {
+            showMessage("Erro: " + error, true);
           });
+      }
+
+      // Tenta capturar o código de autorização automaticamente da URL
+      function checkForAuthCode() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get("code");
+        if (code) {
+          showMessage("Código de autorização detectado. Realizando troca...");
+          trocarCodigoPorToken(code);
+          // Limpa o parâmetro para não repetir a operação
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+
+      // Adiciona os event listeners para os botões
+      document.getElementById("btnLogin").addEventListener("click", iniciarAutenticacao);
+      document.getElementById("btnTrocar").addEventListener("click", () => {
+        const codeInput = document.getElementById("authCodeInput").value.trim();
+        if (codeInput) {
+          trocarCodigoPorToken(codeInput);
+        } else {
+          showMessage("Por favor, insira o código de autorização.", true);
+        }
       });
-    });
-  </script>
-</body>
+
+      // Verifica se há um código na URL assim que a página carrega
+      window.onload = checkForAuthCode;
+    </script>
+  </body>
 </html>

@@ -2,10 +2,10 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
-    <title>Mercado Livre - Anúncios Personalizados</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mercado Livre - Publicar Anúncio</title>
     <style>
-      /* Reset básico */
+      /* Reset e fontes */
       * {
         margin: 0;
         padding: 0;
@@ -13,122 +13,110 @@
       }
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(to right, #007acc, #00c6ff);
+        background: linear-gradient(135deg, #4a90e2, #145da0);
         color: #333;
         min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        padding: 20px;
       }
       header {
-        width: 100%;
-        padding: 1rem;
         text-align: center;
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         margin-bottom: 2rem;
+        color: #fff;
       }
       header h1 {
-        color: #007acc;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
       }
       .container {
-        background: #fff;
-        width: 90%;
-        max-width: 900px;
+        background-color: #fff;
+        border-radius: 12px;
         padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        margin-bottom: 2rem;
+        max-width: 900px;
+        margin: 0 auto 2rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
       }
-      .btn {
-        display: inline-block;
-        background: #007acc;
-        color: #fff;
-        padding: 0.75rem 1.25rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1rem;
-        transition: background 0.3s ease;
-        text-decoration: none;
-        margin: 0.5rem 0;
-      }
-      .btn:hover {
-        background: #005fa3;
-      }
-      .hidden {
-        display: none;
-      }
-      .message {
-        margin: 1rem 0;
-        padding: 0.75rem;
-        border-radius: 4px;
-        background-color: #e7f4e4;
-        border: 1px solid #a7d7a7;
-        color: #2e7d32;
-      }
-      .error {
-        background-color: #f9d6d5;
-        border: 1px solid #f08080;
-        color: #c62828;
-      }
-      input, select, textarea {
-        margin: 0.5rem 0;
-        padding: 0.5rem;
-        width: 100%;
-      }
-      input[type="file"] {
-        padding: 0;
-      }
-      fieldset {
-        border: 1px solid #ddd;
-        margin: 1rem 0;
-        padding: 1rem;
-        border-radius: 5px;
-      }
-      legend {
-        padding: 0 0.5rem;
-        font-weight: bold;
-      }
-      label {
-        font-weight: bold;
+      h2 {
+        margin-bottom: 1.5rem;
+        color: #145da0;
       }
       .form-row {
         margin-bottom: 1rem;
       }
-      table {
+      label {
+        display: block;
+        margin-bottom: 0.3rem;
+        font-weight: bold;
+      }
+      input[type="text"],
+      input[type="number"],
+      input[type="file"],
+      select,
+      textarea {
         width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-      }
-      table, th, td {
+        padding: 0.6rem;
         border: 1px solid #ccc;
+        border-radius: 6px;
       }
-      th, td {
-        padding: 0.5rem;
-        text-align: left;
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: none;
+        border-color: #145da0;
       }
-      /* Modal para seleção de veículos */
+      fieldset {
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+      }
+      legend {
+        padding: 0 0.5rem;
+        font-size: 1.1rem;
+        font-weight: bold;
+      }
+      .btn {
+        display: inline-block;
+        background: linear-gradient(135deg, #145da0, #4a90e2);
+        color: #fff;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.3s ease, transform 0.2s ease;
+        text-decoration: none;
+        margin-top: 0.5rem;
+      }
+      .btn:hover {
+        background: linear-gradient(135deg, #4a90e2, #145da0);
+        transform: translateY(-2px);
+      }
+      .checkbox-group label {
+        font-weight: normal;
+        margin-right: 1rem;
+      }
+      /* Modal de Seleção de Veículos */
       .modal {
         display: none;
         position: fixed;
         z-index: 100;
-        padding-top: 60px;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.5);
+        overflow-y: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding-top: 60px;
       }
       .modal-content {
         background: #fff;
-        margin: auto;
+        margin: 5% auto;
         padding: 2rem;
         border: 1px solid #888;
         width: 90%;
         max-width: 800px;
-        border-radius: 8px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
       }
       .close {
         color: #aaa;
@@ -137,38 +125,39 @@
         font-weight: bold;
         cursor: pointer;
       }
+      .close:hover {
+        color: #000;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+      th, td {
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        text-align: left;
+      }
+      th {
+        background: #f2f2f2;
+      }
       footer {
-        margin-top: 2rem;
+        text-align: center;
         color: #fff;
-        padding: 1rem;
+        margin-top: 2rem;
       }
     </style>
   </head>
   <body>
     <header>
-      <h1>Mercado Livre - Anúncios Personalizados</h1>
+      <h1>Mercado Livre - Publicar Anúncio</h1>
+      <p>Gerencie e publique seus anúncios com facilidade</p>
     </header>
 
-    <!-- Container de Login -->
-    <div class="container" id="loginContainer">
-      <div id="message" class="message hidden"></div>
-      <button id="btnLogin" class="btn">Login com Mercado Livre</button>
-      <div id="authCodeSection" class="hidden">
-        <p>Se o redirecionamento não funcionar, cole o código de autorização:</p>
-        <input type="text" id="authCodeInput" placeholder="Código de autorização" />
-        <button id="btnTrocar" class="btn">Trocar Código por Token</button>
-      </div>
-      <div id="loginStatus" class="hidden" style="margin-top: 1rem;">
-        <p><strong>Logado com sucesso!</strong></p>
-        <p id="userData"></p>
-      </div>
-    </div>
-
-    <!-- Container para Publicação de Anúncios Únicos -->
-    <div class="container" id="criarAnuncioContainer">
+    <div class="container" id="publicarAnuncio">
       <h2>Criar Anúncio Único</h2>
       <form id="formCriarAnuncio">
-        <!-- Escolha a Categoria Principal com padrão "Produtos" -->
+        <!-- Seleção de Artigo -->
         <div class="form-row">
           <label for="primaryCategory">Tipo de Artigo:</label>
           <select id="primaryCategory">
@@ -181,29 +170,28 @@
         <!-- Nome do Produto -->
         <div class="form-row">
           <label for="createTitle">Nome do Produto:</label>
-          <input type="text" id="createTitle" placeholder="Nome do Produto" required />
+          <input type="text" id="createTitle" placeholder="Digite o nome do produto" required />
         </div>
-        <!-- Seleção de Categorias Múltiplas (checkboxes) -->
+        <!-- Categorias Múltiplas -->
         <fieldset>
-          <legend>Categorias (selecionar uma ou mais)</legend>
-          <div id="siteCategories">
-            <!-- Categorias serão carregadas dinamicamente; exemplo fixo abaixo -->
-            <label><input type="checkbox" class="site-category" value="Categoria_1" /> Categoria 1</label><br />
-            <label><input type="checkbox" class="site-category" value="Categoria_2" /> Categoria 2</label><br />
-            <label><input type="checkbox" class="site-category" value="Categoria_3" /> Categoria 3</label><br />
-            <label><input type="checkbox" class="site-category" value="Categoria_4" /> Categoria 4</label><br />
+          <legend>Categorias (Selecione uma ou mais)</legend>
+          <div class="checkbox-group" id="siteCategories">
+            <label><input type="checkbox" class="site-category" value="Categoria 1" /> Categoria 1</label>
+            <label><input type="checkbox" class="site-category" value="Categoria 2" /> Categoria 2</label>
+            <label><input type="checkbox" class="site-category" value="Categoria 3" /> Categoria 3</label>
+            <label><input type="checkbox" class="site-category" value="Categoria 4" /> Categoria 4</label>
           </div>
         </fieldset>
         <!-- Marca e Número da Peça (Obrigatórios) -->
         <div class="form-row">
           <label for="createBrand">Marca:</label>
-          <input type="text" id="createBrand" placeholder="Marca" required />
+          <input type="text" id="createBrand" placeholder="Digite a marca" required />
         </div>
         <div class="form-row">
           <label for="createPartNumber">Número da Peça:</label>
-          <input type="text" id="createPartNumber" placeholder="Número da Peça" required />
+          <input type="text" id="createPartNumber" placeholder="Digite o número da peça" required />
         </div>
-        <!-- Estado do Artigo: Novo ou Usado -->
+        <!-- Estado do Artigo -->
         <div class="form-row">
           <label for="itemCondition">Condição do Artigo:</label>
           <select id="itemCondition">
@@ -211,47 +199,47 @@
             <option value="used">Usado</option>
           </select>
         </div>
-        <!-- Código de Etiqueta (opção pré-selecionada: Sem código) -->
+        <!-- Código de Etiqueta e INMETRO -->
         <div class="form-row">
           <label>Código de Etiqueta:</label>
           <label><input type="radio" name="etiqueta" value="none" checked /> Sem código</label>
         </div>
-        <!-- Código INMETRO: Gerado automaticamente -->
         <div class="form-row">
           <label for="inmetroCode">Código INMETRO:</label>
-          <input type="text" id="inmetroCode" readonly />
-          <button type="button" id="btnGenerateInmetro" class="btn">Gerar Código</button>
+          <input type="text" id="inmetroCode" placeholder="Clique em 'Gerar Código'" readonly />
+          <button type="button" id="btnGenerateInmetro" class="btn">Gerar Código INMETRO</button>
         </div>
         <!-- Características Secundárias -->
         <fieldset>
           <legend>Características Secundárias</legend>
           <div class="form-row">
             <label for="vehicleType">Tipo de Veículo:</label>
-            <input type="text" id="vehicleType" placeholder="Ex. Carro, Moto, etc." />
+            <input type="text" id="vehicleType" placeholder="Ex: Carro, Moto, etc." />
           </div>
           <div class="form-row">
             <label for="vehiclePositions">Posições:</label>
-            <input type="text" id="vehiclePositions" placeholder="Ex. Frente, Traseira, etc." />
+            <input type="text" id="vehiclePositions" placeholder="Ex: Frente, Traseira, etc." />
           </div>
-          <div class="form-row">
-            <label>Inclui:</label>
-            <label><input type="checkbox" id="includesCoxins" /> Coxins</label>
-            <label><input type="checkbox" id="includesBatentes" /> Batentes</label>
-            <label><input type="checkbox" id="includesMolas" /> Molas</label>
+          <div class="form-row checkbox-group">
+            <label><input type="checkbox" id="includesCoxins" /> Inclui Coxins</label>
+            <label><input type="checkbox" id="includesBatentes" /> Inclui Batentes</label>
+            <label><input type="checkbox" id="includesMolas" /> Inclui Molas</label>
           </div>
           <div class="form-row">
             <label for="oemCode">Código OEM:</label>
-            <input type="text" id="oemCode" placeholder="Código OEM" />
+            <input type="text" id="oemCode" placeholder="Digite o Código OEM" />
           </div>
-          <!-- Botão para abrir seleção de veículos -->
+          <!-- Botão para Selecionar Veículos -->
           <div class="form-row">
-            <button type="button" id="btnSelecionarVeiculos" class="btn">Selecionar Veículos</button>
+            <button type="button" id="btnSelecionarVeiculos" class="btn">
+              Selecionar Veículos
+            </button>
           </div>
         </fieldset>
-        <!-- Outros Campos Necessários para o Anúncio -->
+        <!-- Informações Finais do Anúncio -->
         <div class="form-row">
           <label for="createPrice">Preço (R$):</label>
-          <input type="number" id="createPrice" placeholder="Preço" required step="0.01" />
+          <input type="number" id="createPrice" placeholder="Digite o preço" required step="0.01" />
         </div>
         <div class="form-row">
           <label for="createQuantity">Quantidade:</label>
@@ -259,7 +247,7 @@
         </div>
         <div class="form-row">
           <label for="createDescription">Descrição:</label>
-          <textarea id="createDescription" placeholder="Descrição detalhada" required rows="4"></textarea>
+          <textarea id="createDescription" placeholder="Descrição detalhada do anúncio" required rows="4"></textarea>
         </div>
         <div class="form-row">
           <label for="createImages">Imagens:</label>
@@ -267,17 +255,17 @@
         </div>
         <button type="submit" class="btn">Criar Anúncio</button>
       </form>
-      <div id="createAnuncioResult"></div>
+      <div id="createAnuncioResult" style="margin-top:1rem;"></div>
     </div>
 
-    <!-- Container para Publicar Vários Anúncios -->
-    <div class="container" id="criarVariosContainer">
+    <!-- Área de Publicação de Vários Anúncios -->
+    <div class="container" id="publicarVariosContainer">
       <h2>Publicar Vários Anúncios</h2>
       <button id="btnAdicionarAnuncio" class="btn">Adicionar Formulário de Anúncio</button>
       <div id="anuncioFormsContainer"></div>
       <div class="form-row">
         <label for="guaranteeTime">Tempo de Garantia (meses):</label>
-        <input type="number" id="guaranteeTime" placeholder="Tempo de Garantia" value="0" />
+        <input type="number" id="guaranteeTime" placeholder="Ex.: 12" value="0" />
       </div>
       <button id="btnPublicarVarios" class="btn">Publicar Todos</button>
       <div id="resultMultiple" style="margin-top:1rem;"></div>
@@ -289,14 +277,14 @@
         <span class="close" id="closeModal">&times;</span>
         <h2>Selecionar Veículos</h2>
         <fieldset>
-          <legend>Filtros</legend>
+          <legend>Filtros de Veículos</legend>
           <div class="form-row">
             <label for="filterMarca">Marca:</label>
-            <input type="text" id="filterMarca" placeholder="Marca" />
+            <input type="text" id="filterMarca" placeholder="Digite a marca" />
           </div>
           <div class="form-row">
             <label for="filterModelo">Modelo:</label>
-            <input type="text" id="filterModelo" placeholder="Modelo" />
+            <input type="text" id="filterModelo" placeholder="Digite o modelo" />
           </div>
           <div class="form-row">
             <label for="filterAno">Ano:</label>
@@ -369,7 +357,7 @@
             </tr>
           </thead>
           <tbody id="bodyVeiculos">
-            <!-- Dados de veículos serão preenchidos aqui dinamicamente -->
+            <!-- Dados de veículos serão carregados dinamicamente -->
           </tbody>
         </table>
       </div>
@@ -380,35 +368,33 @@
     </footer>
 
     <script>
-      // Configurações de OAuth e API
-      const CLIENT_ID = "SEU_CLIENT_ID"; // Substitua pelo seu Client ID
-      const CLIENT_SECRET = "SEU_CLIENT_SECRET"; // Substitua pelo seu Client Secret (NÃO use isso no browser em produção)
-      const REDIRECT_URI = window.location.origin; // Usar a própria URL para capturar o código
+      // Configurações OAuth e API
+      const CLIENT_ID = "SEU_CLIENT_ID"; 
+      const CLIENT_SECRET = "SEU_CLIENT_SECRET";
+      const REDIRECT_URI = window.location.origin;
       const AUTHORIZATION_URL = "https://auth.mercadolivre.com.br/authorization";
       const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
-
       let ACCESS_TOKEN = "";
       let SELLER_ID = "";
       const API_BASE = "https://api.mercadolibre.com";
 
-      // Exibe mensagens para o usuário
       function showMessage(msg, isError = false) {
-        const messageDiv = document.getElementById("message");
-        messageDiv.innerText = msg;
-        messageDiv.className = isError ? "message error" : "message";
-        messageDiv.classList.remove("hidden");
+        const messageEl = document.getElementById("message");
+        messageEl.innerText = msg;
+        messageEl.className = isError ? "message error" : "message";
+        messageEl.classList.remove("hidden");
       }
 
-      // Funções de OAuth
+      // OAuth functions
       function iniciarAutenticacao() {
         const params = new URLSearchParams({
           response_type: "code",
           client_id: CLIENT_ID,
-          redirect_uri: REDIRECT_URI,
+          redirect_uri: REDIRECT_URI
         });
         const authUrl = `${AUTHORIZATION_URL}?${params.toString()}`;
         window.open(authUrl, "_blank");
-        showMessage("Abra a janela de login, autorize e depois cole o código de autorização se necessário.");
+        showMessage("Abra a janela de login, autorize e cole o código de autorização se necessário.");
         document.getElementById("authCodeSection").classList.remove("hidden");
       }
       function trocarCodigoPorToken(codigo) {
@@ -417,15 +403,15 @@
           client_id: CLIENT_ID,
           client_secret: CLIENT_SECRET,
           code: codigo,
-          redirect_uri: REDIRECT_URI,
+          redirect_uri: REDIRECT_URI
         });
         fetch(TOKEN_URL, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: payload.toString(),
+          body: payload.toString()
         })
-          .then((response) => response.json())
-          .then((data) => {
+          .then(response => response.json())
+          .then(data => {
             if (data.access_token) {
               ACCESS_TOKEN = data.access_token;
               SELLER_ID = data.user_id;
@@ -438,7 +424,7 @@
               showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
             }
           })
-          .catch((error) => showMessage("Erro: " + error, true));
+          .catch(error => showMessage("Erro: " + error, true));
       }
       function checkForAuthCode() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -450,107 +436,26 @@
         }
       }
 
-      // Geração do código INMETRO
+      // Geração de código INMETRO
       document.getElementById("btnGenerateInmetro").addEventListener("click", () => {
-        // Simula a geração de um código INMETRO aleatório
         const generatedCode = "INM-" + Math.floor(Math.random() * 1000000);
         document.getElementById("inmetroCode").value = generatedCode;
       });
 
-      // Obter anúncios existentes
-      function obterAnunciosExistentes() {
-        const url = `${API_BASE}/users/${SELLER_ID}/items/search?access_token=${ACCESS_TOKEN}`;
-        fetch(url)
-          .then((response) => response.json())
-          .then((data) => {
-            const tbody = document.getElementById("bodyAnuncios");
-            tbody.innerHTML = "";
-            const itemIds = data.results || [];
-            itemIds.forEach((item_id) => {
-              obterDetalhesAnuncio(item_id).then((detalhes) => {
-                if (detalhes) {
-                  const tr = document.createElement("tr");
-                  tr.innerHTML = `<td>${detalhes.id}</td>
-                                  <td>${detalhes.title}</td>
-                                  <td>${detalhes.price}</td>
-                                  <td>${detalhes.available_quantity}</td>`;
-                  tbody.appendChild(tr);
-                }
-              });
-            });
-          })
-          .catch((error) => showMessage("Erro ao obter anúncios: " + error, true));
-      }
-      function obterDetalhesAnuncio(item_id) {
-        const url = `${API_BASE}/items/${item_id}?access_token=${ACCESS_TOKEN}`;
-        return fetch(url).then((response) => {
-          if (response.ok) return response.json();
-          else {
-            showMessage("Erro ao obter detalhes do anúncio " + item_id, true);
-            return null;
-          }
-        });
-      }
-      // Criação de anúncio único
-      function criarAnuncio(titulo, preco, categoria_id, descricao, quantidade = 1, imagens = [], extraFields = {}) {
-        const payload = {
-          title: titulo,
-          price: preco,
-          currency_id: "BRL",
-          available_quantity: quantidade,
-          buying_mode: "buy_it_now",
-          listing_type_id: "gold_pro",
-          condition: document.getElementById("itemCondition").value,
-          category_id: categoria_id,
-          description: { plain_text: descricao },
-          pictures: imagens.map((src) => ({ source: src })),
-          // Os campos extra (marca, número da peça, características, etc.) podem ser incorporados na descrição para este exemplo
-          extra: extraFields
-        };
-        const url = `${API_BASE}/items?access_token=${ACCESS_TOKEN}`;
-        return fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      }
-      // Enviar imagem para Mercado Livre
-      function enviarImagemMercadoLivre(file) {
-        const url = `${API_BASE}/pictures?access_token=${ACCESS_TOKEN}`;
-        const formData = new FormData();
-        formData.append("file", file, file.name);
-        return fetch(url, { method: "POST", body: formData })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.secure_url) return data.secure_url;
-            else {
-              showMessage("Falha no upload da imagem: " + JSON.stringify(data), true);
-              return null;
-            }
-          });
-      }
-
-      // Lógica anúncio único
-      document.getElementById("btnCarregarAnuncios").addEventListener("click", obterAnunciosExistentes);
-
-      document.getElementById("formCriarAnuncio").addEventListener("submit", function (e) {
+      // Criar Anúncio Único
+      document.getElementById("formCriarAnuncio").addEventListener("submit", function(e) {
         e.preventDefault();
-        // Coleta dos dados do formulário
         const titulo = document.getElementById("createTitle").value;
         const preco = parseFloat(document.getElementById("createPrice").value);
         const quantidade = parseInt(document.getElementById("createQuantity").value) || 1;
         const descricao = document.getElementById("createDescription").value;
-        // Categoria: neste exemplo últiliza o valor digitado e as categorias selecionadas
         const primaryCategory = document.getElementById("primaryCategory").value;
-        // As categorias do site selecionadas
         let siteCategories = [];
         document.querySelectorAll(".site-category").forEach(cb => {
           if (cb.checked) siteCategories.push(cb.value);
         });
-        // Dados obrigatórios
         const marca = document.getElementById("createBrand").value;
         const partNumber = document.getElementById("createPartNumber").value;
-        // Extra fields (características)
         const extraFields = {
           marca: marca,
           partNumber: partNumber,
@@ -569,28 +474,66 @@
         for (let i = 0; i < imagesFiles.length; i++) {
           imagensPromises.push(enviarImagemMercadoLivre(imagesFiles[i]));
         }
-        Promise.all(imagensPromises).then((imagens) => {
+        Promise.all(imagensPromises).then(imagens => {
           criarAnuncio(titulo, preco, extraFields.primaryCategory, descricao, quantidade, imagens, extraFields)
-            .then((response) => response.json())
-            .then((data) => {
+            .then(response => response.json())
+            .then(data => {
               if (data.id) {
-                document.getElementById("createAnuncioResult").innerText =
-                  "Anúncio criado com sucesso! ID: " + data.id;
+                document.getElementById("createAnuncioResult").innerText = "Anúncio criado com sucesso! ID: " + data.id;
               } else {
-                document.getElementById("createAnuncioResult").innerText =
-                  "Erro ao criar anúncio: " + JSON.stringify(data);
+                document.getElementById("createAnuncioResult").innerText = "Erro ao criar anúncio: " + JSON.stringify(data);
               }
             });
         });
       });
 
-      // Lógica para múltiplos anúncios
+      function criarAnuncio(titulo, preco, categoria_id, descricao, quantidade = 1, imagens = [], extraFields = {}) {
+        const payload = {
+          title: titulo,
+          price: preco,
+          currency_id: "BRL",
+          available_quantity: quantidade,
+          buying_mode: "buy_it_now",
+          listing_type_id: "gold_pro",
+          condition: document.getElementById("itemCondition").value,
+          category_id: categoria_id,
+          description: { plain_text: descricao },
+          pictures: imagens.map(src => ({ source: src })),
+          extra: extraFields
+        };
+        const url = `${API_BASE}/items?access_token=${ACCESS_TOKEN}`;
+        return fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      function enviarImagemMercadoLivre(file) {
+        const url = `${API_BASE}/pictures?access_token=${ACCESS_TOKEN}`;
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+        return fetch(url, { method: "POST", body: formData })
+          .then(response => response.json())
+          .then(data => {
+            if (data.secure_url) return data.secure_url;
+            else {
+              showMessage("Falha no upload da imagem: " + JSON.stringify(data), true);
+              return null;
+            }
+          });
+      }
+
+      // Lógica para "Publicar Vários Anúncios"
       const anuncioFormsContainer = document.getElementById("anuncioFormsContainer");
-      function addAnnouncementForm() {
+      document.getElementById("btnAdicionarAnuncio").addEventListener("click", () => {
         const formDiv = document.createElement("div");
         formDiv.className = "announcement-form";
+        formDiv.style.border = "1px solid #ccc";
+        formDiv.style.padding = "1rem";
+        formDiv.style.borderRadius = "8px";
+        formDiv.style.marginBottom = "1.5rem";
         formDiv.innerHTML = `
-          <h3>Novo Anúncio</h3>
           <div class="form-row">
             <label>Título:</label>
             <input type="text" class="multi-title" placeholder="Título" required />
@@ -615,15 +558,13 @@
             <label>Imagens:</label>
             <input type="file" class="multi-images" multiple accept="image/*" />
           </div>
-          <!-- Campo para tempo de garantia -->
           <div class="form-row">
             <label>Tempo de Garantia (meses):</label>
             <input type="number" class="multi-guarantee" placeholder="Garantia" value="0" required />
           </div>
         `;
         anuncioFormsContainer.appendChild(formDiv);
-      }
-      document.getElementById("btnAdicionarAnuncio").addEventListener("click", addAnnouncementForm);
+      });
       async function publishMultipleAnnouncements() {
         const results = [];
         const forms = document.querySelectorAll(".announcement-form");
@@ -655,43 +596,36 @@
         const results = await publishMultipleAnnouncements();
         let successCount = 0;
         let failureCount = 0;
-        results.forEach((res) => {
+        results.forEach(res => {
           if (res.id) successCount++;
           else failureCount++;
         });
-        document.getElementById("resultMultiple").innerText =
-          "Sucesso: " + successCount + " | Falhas: " + failureCount;
+        document.getElementById("resultMultiple").innerText = "Sucesso: " + successCount + " | Falhas: " + failureCount;
       });
 
-      // Lógica do Modal de Veículos
+      // Modal: Seleção de Veículos
       const modal = document.getElementById("modalVeiculos");
       const btnSelecionarVeiculos = document.getElementById("btnSelecionarVeiculos");
       const spanClose = document.getElementById("closeModal");
-
       btnSelecionarVeiculos.addEventListener("click", () => {
         modal.style.display = "block";
-        // Carrega os veículos (simulação com dados fixos ou chamada à API do Mercado Livre se disponível)
         carregarVeiculos();
       });
-
       spanClose.addEventListener("click", () => {
         modal.style.display = "none";
       });
       window.addEventListener("click", (event) => {
-        if (event.target == modal) {
-          modal.style.display = "none";
-        }
+        if (event.target == modal) modal.style.display = "none";
       });
-
       function carregarVeiculos() {
-        // Simulação de dados vindos do Mercado Livre
+        // Simulação de dados obtidos via API do Mercado Livre.
         const veiculos = [
           { marca: "Ford", modelo: "Fiesta", ano: "2015", versao: "1.6 SE", motor: "1.6", combustivel: "Gasolina", potencia: "115cv", carroceria: "Hatch", transmissao: "Automática", cambio: "Powershift", portas: "4", direcao: "Hidráulica", tracao: "Dianteira", valvulas: "16" },
           { marca: "Chevrolet", modelo: "Onix", ano: "2020", versao: "LTZ", motor: "1.0 Turbo", combustivel: "Gasolina/Etanol", potencia: "116cv", carroceria: "Hatch", transmissao: "Automática", cambio: "6 marchas", portas: "4", direcao: "Elétrica", tracao: "Dianteira", valvulas: "12" }
         ];
         const tbody = document.getElementById("bodyVeiculos");
         tbody.innerHTML = "";
-        veiculos.forEach((v) => {
+        veiculos.forEach(v => {
           const tr = document.createElement("tr");
           tr.innerHTML = `<td>${v.marca}</td>
                           <td>${v.modelo}</td>
@@ -710,17 +644,6 @@
           tbody.appendChild(tr);
         });
       }
-
-      // Event listeners de OAuth
-      document.getElementById("btnLogin").addEventListener("click", iniciarAutenticacao);
-      document.getElementById("btnTrocar").addEventListener("click", () => {
-        const codeInput = document.getElementById("authCodeInput").value.trim();
-        if (codeInput) {
-          trocarCodigoPorToken(codeInput);
-        } else {
-          showMessage("Por favor, insira o código de autorização.", true);
-        }
-      });
       window.onload = checkForAuthCode;
     </script>
   </body>

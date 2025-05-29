@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
     />
-    <title>Mercado Livre - Login e Gerenciamento</title>
+    <title>Mercado Livre - Login, Anúncios e Publicação em Lote</title>
     <style>
       /* Reset básico */
       * {
@@ -37,10 +37,11 @@
       .container {
         background: #fff;
         width: 90%;
-        max-width: 600px;
+        max-width: 800px;
         padding: 2rem;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
       }
       .btn {
         display: inline-block;
@@ -53,6 +54,7 @@
         font-size: 1rem;
         transition: background 0.3s ease;
         text-decoration: none;
+        margin: 0.5rem 0;
       }
       .btn:hover {
         background: #005fa3;
@@ -73,17 +75,41 @@
         border: 1px solid #f08080;
         color: #c62828;
       }
+      input,
+      select,
+      textarea {
+        margin: 0.5rem 0;
+        padding: 0.5rem;
+        width: 100%;
+      }
+      input[type="file"] {
+        padding: 0;
+      }
+      .announcement-form {
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+      }
+      .announcement-form h3 {
+        margin-bottom: 0.5rem;
+      }
+      label {
+        font-weight: bold;
+      }
       footer {
         margin-top: 2rem;
         color: #fff;
+        padding: 1rem;
       }
     </style>
   </head>
   <body>
     <header>
-      <h1>Mercado Livre OAuth Login</h1>
+      <h1>Mercado Livre OAuth e Publicação de Anúncios</h1>
     </header>
-    <div class="container">
+
+    <div class="container" id="loginContainer">
       <div id="message" class="message hidden"></div>
       <!-- Botão de Login -->
       <button id="btnLogin" class="btn">Login com Mercado Livre</button>
@@ -94,7 +120,6 @@
           type="text"
           id="authCodeInput"
           placeholder="Código de autorização"
-          style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"
         />
         <button id="btnTrocar" class="btn">Trocar Código por Token</button>
       </div>
@@ -104,21 +129,83 @@
         <p id="userData"></p>
       </div>
     </div>
+
+    <div class="container" id="anunciosContainer">
+      <h2>Anúncios Existentes</h2>
+      <button id="btnCarregarAnuncios" class="btn">Carregar Anúncios</button>
+      <table id="tblAnuncios">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Preço (R$)</th>
+            <th>Quantidade</th>
+          </tr>
+        </thead>
+        <tbody id="bodyAnuncios"></tbody>
+      </table>
+    </div>
+
+    <div class="container" id="criarAnuncioContainer">
+      <h2>Criar Anúncio Único</h2>
+      <form id="formCriarAnuncio">
+        <input type="text" id="createTitle" placeholder="Título" required />
+        <input
+          type="number"
+          id="createPrice"
+          placeholder="Preço"
+          required
+          step="0.01"
+        />
+        <input
+          type="text"
+          id="createCategory"
+          placeholder="Categoria ID"
+          required
+        />
+        <textarea
+          id="createDescription"
+          placeholder="Descrição"
+          required
+          rows="4"
+        ></textarea>
+        <input type="number" id="createQuantity" placeholder="Quantidade" value="1" />
+        <input
+          type="file"
+          id="createImages"
+          multiple
+          accept="image/*"
+        />
+        <button type="submit" class="btn">Criar Anúncio</button>
+      </form>
+      <div id="createAnuncioResult"></div>
+    </div>
+
+    <div class="container" id="criarVariosContainer">
+      <h2>Criar Vários Anúncios</h2>
+      <button id="btnAdicionarAnuncio" class="btn">Adicionar Anúncio</button>
+      <div id="anuncioFormsContainer"></div>
+      <button id="btnPublicarVarios" class="btn">Publicar Todos</button>
+      <div id="resultMultiple" style="margin-top:1rem;"></div>
+    </div>
+
     <footer>
       <p>© 2025 Mercado Livre Integration Demo</p>
     </footer>
+
     <script>
       // Configurações de OAuth e API
-      const CLIENT_ID = "SEU_CLIENT_ID";       // Substitua pelo seu Client ID
-      const CLIENT_SECRET = "SEU_CLIENT_SECRET"; // Substitua pelo seu Client Secret (NÃO use isso em produção no browser)
-      const REDIRECT_URI = window.location.origin; // Use a própria URL para capturar o código
+      const CLIENT_ID = "SEU_CLIENT_ID"; // Substitua pelo seu Client ID
+      const CLIENT_SECRET = "SEU_CLIENT_SECRET"; // Substitua pelo seu Client Secret (NÃO use isso no browser em produção)
+      const REDIRECT_URI = window.location.origin; // Usar a própria URL para capturar o código
       const AUTHORIZATION_URL = "https://auth.mercadolivre.com.br/authorization";
       const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
 
       let ACCESS_TOKEN = "";
       let SELLER_ID = "";
+      const API_BASE = "https://api.mercadolibre.com";
 
-      // Exibe mensagens de status para o usuário
+      // Exibe mensagens para o usuário
       function showMessage(msg, isError = false) {
         const messageDiv = document.getElementById("message");
         messageDiv.innerText = msg;
@@ -126,24 +213,21 @@
         messageDiv.classList.remove("hidden");
       }
 
-      // Inicia o fluxo OAuth abrindo uma nova janela para login
+      // Fluxo de autenticação OAuth
       function iniciarAutenticacao() {
-        // Constrói a URL de autorização com os parâmetros
         const params = new URLSearchParams({
           response_type: "code",
           client_id: CLIENT_ID,
           redirect_uri: REDIRECT_URI,
         });
         const authUrl = `${AUTHORIZATION_URL}?${params.toString()}`;
-        // Abre a URL em uma nova janela
         window.open(authUrl, "_blank");
         showMessage(
-          "Abra a janela de login, autorize e depois cole o código na área abaixo se não for redirecionado automaticamente."
+          "Abra a janela de login, autorize e depois cole o código na área abaixo se necessário."
         );
         document.getElementById("authCodeSection").classList.remove("hidden");
       }
 
-      // Troca o código de autorização por um token de acesso
       function trocarCodigoPorToken(codigo) {
         const payload = new URLSearchParams({
           grant_type: "authorization_code",
@@ -166,33 +250,208 @@
               showMessage("Autenticação realizada com sucesso!");
               document.getElementById("authCodeSection").classList.add("hidden");
               document.getElementById("btnLogin").classList.add("hidden");
-              // Mostra os dados do usuário logado na interface
               document.getElementById("loginStatus").classList.remove("hidden");
               document.getElementById(
                 "userData"
               ).innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
             } else {
-              showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
+              showMessage(
+                "Erro na troca de código por token: " +
+                  JSON.stringify(data),
+                true
+              );
             }
           })
-          .catch((error) => {
-            showMessage("Erro: " + error, true);
-          });
+          .catch((error) => showMessage("Erro: " + error, true));
       }
 
-      // Tenta capturar o código de autorização automaticamente da URL
       function checkForAuthCode() {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get("code");
         if (code) {
           showMessage("Código de autorização detectado. Realizando troca...");
           trocarCodigoPorToken(code);
-          // Limpa o parâmetro para não repetir a operação
           window.history.replaceState({}, document.title, window.location.pathname);
         }
       }
 
-      // Adiciona os event listeners para os botões
+      // Obter anúncios existentes
+      function obterAnunciosExistentes() {
+        const url = `${API_BASE}/users/${SELLER_ID}/items/search?access_token=${ACCESS_TOKEN}`;
+        fetch(url)
+          .then((response) => response.json())
+          .then((data) => {
+            const tbody = document.getElementById("bodyAnuncios");
+            tbody.innerHTML = "";
+            const itemIds = data.results || [];
+            itemIds.forEach((item_id) => {
+              obterDetalhesAnuncio(item_id).then((detalhes) => {
+                if (detalhes) {
+                  const tr = document.createElement("tr");
+                  tr.innerHTML = `<td>${detalhes.id}</td>
+                                    <td>${detalhes.title}</td>
+                                    <td>${detalhes.price}</td>
+                                    <td>${detalhes.available_quantity}</td>`;
+                  tbody.appendChild(tr);
+                }
+              });
+            });
+          })
+          .catch((error) =>
+            showMessage("Erro ao obter anúncios: " + error, true)
+          );
+      }
+
+      function obterDetalhesAnuncio(item_id) {
+        const url = `${API_BASE}/items/${item_id}?access_token=${ACCESS_TOKEN}`;
+        return fetch(url).then((response) => {
+          if (response.ok) return response.json();
+          else {
+            showMessage("Erro ao obter detalhes do anúncio " + item_id, true);
+            return null;
+          }
+        });
+      }
+
+      // Cria um anúncio único
+      function criarAnuncio(titulo, preco, categoria_id, descricao, quantidade = 1, imagens = []) {
+        const url = `${API_BASE}/items?access_token=${ACCESS_TOKEN}`;
+        const payload = {
+          title: titulo,
+          price: preco,
+          currency_id: "BRL",
+          available_quantity: quantidade,
+          buying_mode: "buy_it_now",
+          listing_type_id: "gold_pro",
+          condition: "new",
+          category_id: categoria_id,
+          description: { plain_text: descricao },
+          pictures: imagens.map((src) => ({ source: src })),
+        };
+        return fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      // Faz upload da imagem e retorna a URL
+      function enviarImagemMercadoLivre(file) {
+        const url = `${API_BASE}/pictures?access_token=${ACCESS_TOKEN}`;
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+        return fetch(url, {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.secure_url) return data.secure_url;
+            else {
+              showMessage("Falha no upload da imagem: " + JSON.stringify(data), true);
+              return null;
+            }
+          });
+      }
+
+      // --- Lógica para anúncio único ---
+      document.getElementById("btnCarregarAnuncios").addEventListener("click", obterAnunciosExistentes);
+
+      document.getElementById("formCriarAnuncio").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const titulo = document.getElementById("createTitle").value;
+        const preco = parseFloat(document.getElementById("createPrice").value);
+        const categoria_id = document.getElementById("createCategory").value;
+        const descricao = document.getElementById("createDescription").value;
+        const quantidade = parseInt(document.getElementById("createQuantity").value) || 1;
+        const imagesFiles = document.getElementById("createImages").files;
+
+        const imagensPromises = [];
+        for (let i = 0; i < imagesFiles.length; i++) {
+          imagensPromises.push(enviarImagemMercadoLivre(imagesFiles[i]));
+        }
+        Promise.all(imagensPromises).then((imagens) => {
+          criarAnuncio(titulo, preco, categoria_id, descricao, quantidade, imagens)
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.id) {
+                document.getElementById("createAnuncioResult").innerText =
+                  "Anúncio criado com sucesso! ID: " + data.id;
+              } else {
+                document.getElementById("createAnuncioResult").innerText =
+                  "Erro ao criar anúncio: " + JSON.stringify(data);
+              }
+            });
+        });
+      });
+
+      // --- Lógica para múltiplos anúncios ---
+      const anuncioFormsContainer = document.getElementById("anuncioFormsContainer");
+
+      function addAnnouncementForm() {
+        const formDiv = document.createElement("div");
+        formDiv.className = "announcement-form";
+        formDiv.innerHTML = `
+          <h3>Novo Anúncio</h3>
+          <label>Título:</label>
+          <input type="text" class="multi-title" placeholder="Título" required />
+          <label>Preço:</label>
+          <input type="number" class="multi-price" placeholder="Preço" required step="0.01" />
+          <label>Categoria ID:</label>
+          <input type="text" class="multi-category" placeholder="Categoria ID" required />
+          <label>Descrição:</label>
+          <textarea class="multi-description" placeholder="Descrição" required rows="3"></textarea>
+          <label>Quantidade:</label>
+          <input type="number" class="multi-quantity" placeholder="Quantidade" value="1" required />
+          <label>Imagens:</label>
+          <input type="file" class="multi-images" multiple accept="image/*" />
+        `;
+        anuncioFormsContainer.appendChild(formDiv);
+      }
+
+      document.getElementById("btnAdicionarAnuncio").addEventListener("click", addAnnouncementForm);
+
+      async function publishMultipleAnnouncements() {
+        const results = [];
+        const forms = document.querySelectorAll(".announcement-form");
+        for (const form of forms) {
+          const titulo = form.querySelector(".multi-title").value;
+          const preco = parseFloat(form.querySelector(".multi-price").value);
+          const categoria_id = form.querySelector(".multi-category").value;
+          const descricao = form.querySelector(".multi-description").value;
+          const quantidade = parseInt(form.querySelector(".multi-quantity").value) || 1;
+          const imagesInput = form.querySelector(".multi-images");
+          const imagensFiles = imagesInput.files;
+          const imagensPromises = [];
+          for (let i = 0; i < imagensFiles.length; i++) {
+            imagensPromises.push(enviarImagemMercadoLivre(imagensFiles[i]));
+          }
+          const imagens = await Promise.all(imagensPromises);
+          try {
+            const response = await criarAnuncio(titulo, preco, categoria_id, descricao, quantidade, imagens);
+            const data = await response.json();
+            results.push(data);
+          } catch (err) {
+            results.push({ error: err.message });
+          }
+        }
+        return results;
+      }
+
+      document.getElementById("btnPublicarVarios").addEventListener("click", async () => {
+        document.getElementById("resultMultiple").innerText = "Publicando anúncios...";
+        const results = await publishMultipleAnnouncements();
+        let successCount = 0;
+        let failureCount = 0;
+        results.forEach((res) => {
+          if (res.id) successCount++;
+          else failureCount++;
+        });
+        document.getElementById("resultMultiple").innerText =
+          "Sucesso: " + successCount + " | Falhas: " + failureCount;
+      });
+
+      // Event listeners para OAuth
       document.getElementById("btnLogin").addEventListener("click", iniciarAutenticacao);
       document.getElementById("btnTrocar").addEventListener("click", () => {
         const codeInput = document.getElementById("authCodeInput").value.trim();
@@ -203,7 +462,7 @@
         }
       });
 
-      // Verifica se há um código na URL assim que a página carrega
+      // Verifica se há código de autorização na URL ao carregar
       window.onload = checkForAuthCode;
     </script>
   </body>

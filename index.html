@@ -7,7 +7,8 @@
     <style>
       /* Reset and common styles */
       * {
-        margin: 0; padding: 0;
+        margin: 0;
+        padding: 0;
         box-sizing: border-box;
       }
       body {
@@ -127,7 +128,7 @@
         width: 100%;
         height: 100%;
         overflow-y: auto;
-        background-color: rgba(0,0,0,0.5);
+        background-color: rgba(0, 0, 0, 0.5);
         padding-top: 60px;
       }
       .modal-content {
@@ -175,6 +176,8 @@
     <div class="container" id="loginContainer">
       <div id="message" class="message hidden"></div>
       <button id="btnLogin" class="btn">Login com Mercado Livre</button>
+      <!-- Test Login Button -->
+      <button id="btnTestLogin" class="btn">Login de Teste</button>
       <div id="authCodeSection" class="hidden">
         <p>Se o redirecionamento não funcionar, cole o código de autorização:</p>
         <input type="text" id="authCodeInput" placeholder="Código de autorização" />
@@ -186,7 +189,7 @@
       </div>
     </div>
 
-    <!-- MAIN APPLICATION: VISIBLE only after login -->
+    <!-- MAIN APPLICATION: Visible only after login -->
     <div class="container hidden" id="appContainer">
       <h2>Criar Anúncio Único</h2>
       <form id="formCriarAnuncio">
@@ -407,6 +410,7 @@
       let SELLER_ID = "";
       const API_BASE = "https://api.mercadolibre.com";
 
+      // Function to show messages to the user
       function showMessage(msg, isError = false) {
         const messageEl = document.getElementById("message");
         messageEl.innerText = msg;
@@ -450,7 +454,6 @@
             document.getElementById("btnLogin").classList.add("hidden");
             document.getElementById("loginStatus").classList.remove("hidden");
             document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
-            // Exibe o container principal da aplicação após login
             document.getElementById("appContainer").classList.remove("hidden");
           } else {
             showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
@@ -469,6 +472,21 @@
         }
       }
 
+      // Test Login Functionality
+      function testLogin() {
+        // Set dummy credentials for test login
+        ACCESS_TOKEN = "TEST_TOKEN";
+        SELLER_ID = "TEST_SELLER";
+        showMessage("Login de teste realizado com sucesso!");
+        document.getElementById("btnLogin").classList.add("hidden");
+        document.getElementById("btnTestLogin").classList.add("hidden");
+        document.getElementById("authCodeSection").classList.add("hidden");
+        document.getElementById("loginStatus").classList.remove("hidden");
+        document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
+        document.getElementById("appContainer").classList.remove("hidden");
+      }
+
+      // Event Listeners for OAuth and Test Login
       document.getElementById("btnLogin").addEventListener("click", iniciarAutenticacao);
       document.getElementById("btnTrocar").addEventListener("click", () => {
         const codeInput = document.getElementById("authCodeInput").value.trim();
@@ -478,6 +496,7 @@
           showMessage("Por favor, insira o código de autorização.", true);
         }
       });
+      document.getElementById("btnTestLogin").addEventListener("click", testLogin);
       window.onload = checkForAuthCode;
 
       // Functions for Creating Announcements
@@ -603,6 +622,7 @@
         `;
         anuncioFormsContainer.appendChild(formDiv);
       });
+
       async function publishMultipleAnnouncements() {
         const results = [];
         const forms = document.querySelectorAll(".announcement-form");
@@ -629,6 +649,7 @@
         }
         return results;
       }
+
       document.getElementById("btnPublicarVarios").addEventListener("click", async () => {
         document.getElementById("resultMultiple").innerText = "Publicando anúncios...";
         const results = await publishMultipleAnnouncements();
@@ -654,7 +675,7 @@
         if (event.target == modal) modal.style.display = "none";
       });
       function carregarVeiculos() {
-        // Simulated data retrieval from Mercado Livre API
+        // Simulated data from Mercado Livre API
         const veiculos = [
           { marca: "Ford", modelo: "Fiesta", ano: "2015", versao: "1.6 SE", motor: "1.6", combustivel: "Gasolina", potencia: "115cv", carroceria: "Hatch", transmissao: "Automática", cambio: "Powershift", portas: "4", direcao: "Hidráulica", tracao: "Dianteira", valvulas: "16" },
           { marca: "Chevrolet", modelo: "Onix", ano: "2020", versao: "LTZ", motor: "1.0 Turbo", combustivel: "Gasolina/Etanol", potencia: "116cv", carroceria: "Hatch", transmissao: "Automática", cambio: "6 marchas", portas: "4", direcao: "Elétrica", tracao: "Dianteira", valvulas: "12" }

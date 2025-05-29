@@ -27,6 +27,17 @@
         min-height: 100vh;
         padding: 20px;
         line-height: 1.6;
+        animation: fadeInPage 1.5s ease-out;
+      }
+      @keyframes fadeInPage {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       header {
         text-align: center;
@@ -51,9 +62,17 @@
         margin: 0 auto 2rem;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         transition: transform 0.3s ease;
+        animation: fadeInContainer 1s ease-out;
       }
-      .container:hover {
-        transform: scale(1.01);
+      @keyframes fadeInContainer {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       h2 {
         margin-bottom: 1.5rem;
@@ -108,13 +127,14 @@
         border-radius: 30px;
         cursor: pointer;
         font-size: 1rem;
-        transition: background 0.3s ease, transform 0.2s ease;
+        transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
         text-decoration: none;
         margin-top: 0.5rem;
       }
       .btn:hover {
         background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       }
       .checkbox-group label {
         font-weight: normal;
@@ -199,7 +219,7 @@
     <div class="container" id="loginContainer">
       <div id="message" class="message hidden"></div>
       <button id="btnLogin" class="btn">Login com Mercado Livre</button>
-      <!-- Test Login Button -->
+      <!-- Test Login Button (without Mercado Livre account) -->
       <button id="btnTestLogin" class="btn">Login de Teste (Sem conta)</button>
       <div id="authCodeSection" class="hidden">
         <p>Se o redirecionamento não funcionar, cole o código de autorização:</p>
@@ -231,16 +251,13 @@
           <label for="createTitle">Nome do Produto:</label>
           <input type="text" id="createTitle" placeholder="Digite o nome do produto" required />
         </div>
-        <!-- Categorias Múltiplas (Checkboxes) -->
-        <fieldset>
-          <legend>Categorias (Selecione uma ou mais)</legend>
+        <!-- Automatic Category Fetch -->
+        <div class="form-row" id="automaticCategoriesContainer">
+          <p style="color: var(--primary-color); font-weight: bold;">Categorias automáticas:</p>
           <div class="checkbox-group" id="siteCategories">
-            <label><input type="checkbox" class="site-category" value="Categoria 1" /> Categoria 1</label>
-            <label><input type="checkbox" class="site-category" value="Categoria 2" /> Categoria 2</label>
-            <label><input type="checkbox" class="site-category" value="Categoria 3" /> Categoria 3</label>
-            <label><input type="checkbox" class="site-category" value="Categoria 4" /> Categoria 4</label>
+            <!-- Categories will be populated here automatically -->
           </div>
-        </fieldset>
+        </div>
         <!-- Marca e Número da Peça -->
         <div class="form-row">
           <label for="createBrand">Marca:</label>
@@ -412,7 +429,7 @@
             </tr>
           </thead>
           <tbody id="bodyVeiculos">
-            <!-- Vehicle data will be loaded dynamically -->
+            <!-- Dados dos veículos serão carregados dinamicamente -->
           </tbody>
         </table>
       </div>
@@ -428,7 +445,7 @@
       const CLIENT_SECRET = "SEU_CLIENT_SECRET"; // WARNING: Do not expose in production frontend.
       const REDIRECT_URI = window.location.origin;
       const AUTHORIZATION_URL = "https://auth.mercadolivre.com.br/authorization";
-      const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
+      const TOKEN_URL = "https://api.mercadolivre.com/oauth/token";
       let ACCESS_TOKEN = "";
       let SELLER_ID = "";
       const API_BASE = "https://api.mercadolibre.com";
@@ -467,23 +484,23 @@
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: payload.toString()
         })
-        .then(response => response.json())
-        .then(data => {
-          if (data.access_token) {
-            ACCESS_TOKEN = data.access_token;
-            SELLER_ID = data.user_id;
-            showMessage("Autenticação realizada com sucesso!");
-            document.getElementById("authCodeSection").classList.add("hidden");
-            document.getElementById("btnLogin").classList.add("hidden");
-            document.getElementById("btnTestLogin").classList.add("hidden");
-            document.getElementById("loginStatus").classList.remove("hidden");
-            document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
-            document.getElementById("appContainer").classList.remove("hidden");
-          } else {
-            showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
-          }
-        })
-        .catch(error => showMessage("Erro: " + error, true));
+          .then(response => response.json())
+          .then(data => {
+            if (data.access_token) {
+              ACCESS_TOKEN = data.access_token;
+              SELLER_ID = data.user_id;
+              showMessage("Autenticação realizada com sucesso!");
+              document.getElementById("authCodeSection").classList.add("hidden");
+              document.getElementById("btnLogin").classList.add("hidden");
+              document.getElementById("btnTestLogin").classList.add("hidden");
+              document.getElementById("loginStatus").classList.remove("hidden");
+              document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
+              document.getElementById("appContainer").classList.remove("hidden");
+            } else {
+              showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
+            }
+          })
+          .catch(error => showMessage("Erro: " + error, true));
       }
 
       function checkForAuthCode() {
@@ -496,7 +513,7 @@
         }
       }
 
-      // Test Login Functionality (login sem conta Mercado Livre)
+      // Test Login Functionality (without using a Mercado Livre account)
       function testLogin() {
         ACCESS_TOKEN = "TEST_TOKEN";
         SELLER_ID = "TEST_SELLER";
@@ -522,8 +539,44 @@
       document.getElementById("btnTestLogin").addEventListener("click", testLogin);
       window.onload = checkForAuthCode;
 
+      // Function to simulate fetching automatic categories from Mercado Livre based on product name.
+      function fetchAutomaticCategories(productName) {
+        // In a real scenario, here you would call the Mercado Livre API to get automatic categories.
+        // For simulation, we'll use a dummy promise.
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            // Simulated categories based on product name:
+            let categories = [];
+            if (productName.toLowerCase().includes("computador")) {
+              categories = ["Informática", "Eletrônicos", "Hardware"];
+            } else if (productName.toLowerCase().includes("celular")) {
+              categories = ["Eletrônicos", "Telefonia", "Acessórios"];
+            } else {
+              categories = ["Geral", "Outros"];
+            }
+            resolve(categories);
+          }, 500);
+        });
+      }
+
+      // Event listener on product name input to fetch automatic categories.
+      document.getElementById("createTitle").addEventListener("blur", function () {
+        const productName = this.value.trim();
+        if (productName) {
+          fetchAutomaticCategories(productName).then((categories) => {
+            const container = document.getElementById("siteCategories");
+            container.innerHTML = "";
+            categories.forEach((cat) => {
+              const label = document.createElement("label");
+              label.innerHTML = `<input type="checkbox" class="site-category" value="${cat}" checked /> ${cat}`;
+              container.appendChild(label);
+            });
+          });
+        }
+      });
+
       // Functions for Creating Announcements
-      document.getElementById("formCriarAnuncio").addEventListener("submit", function(e) {
+      document.getElementById("formCriarAnuncio").addEventListener("submit", function (e) {
         e.preventDefault();
         const titulo = document.getElementById("createTitle").value;
         const preco = parseFloat(document.getElementById("createPrice").value);
@@ -531,7 +584,7 @@
         const descricao = document.getElementById("createDescription").value;
         const primaryCategory = document.getElementById("primaryCategory").value;
         let siteCategories = [];
-        document.querySelectorAll(".site-category").forEach(cb => {
+        document.querySelectorAll(".site-category").forEach((cb) => {
           if (cb.checked) siteCategories.push(cb.value);
         });
         const marca = document.getElementById("createBrand").value;
@@ -554,10 +607,10 @@
         for (let i = 0; i < imagesFiles.length; i++) {
           imagensPromises.push(enviarImagemMercadoLivre(imagesFiles[i]));
         }
-        Promise.all(imagensPromises).then(imagens => {
+        Promise.all(imagensPromises).then((imagens) => {
           criarAnuncio(titulo, preco, extraFields.primaryCategory, descricao, quantidade, imagens, extraFields)
-            .then(response => response.json())
-            .then(data => {
+            .then((response) => response.json())
+            .then((data) => {
               if (data.id) {
                 document.getElementById("createAnuncioResult").innerText = "Anúncio criado com sucesso! ID: " + data.id;
               } else {
@@ -578,7 +631,7 @@
           condition: document.getElementById("itemCondition").value,
           category_id: categoria_id,
           description: { plain_text: descricao },
-          pictures: imagens.map(src => ({ source: src })),
+          pictures: imagens.map((src) => ({ source: src })),
           extra: extraFields
         };
         const url = `${API_BASE}/items?access_token=${ACCESS_TOKEN}`;
@@ -594,8 +647,8 @@
         const formData = new FormData();
         formData.append("file", file, file.name);
         return fetch(url, { method: "POST", body: formData })
-          .then(response => response.json())
-          .then(data => {
+          .then((response) => response.json())
+          .then((data) => {
             if (data.secure_url) return data.secure_url;
             else {
               showMessage("Falha no upload da imagem: " + JSON.stringify(data), true);
@@ -663,7 +716,15 @@
           }
           const imagens = await Promise.all(imagensPromises);
           try {
-            const response = await criarAnuncio(titulo, preco, categoria_id, descricao, quantidade, imagens, { guarantee: guarantee });
+            const response = await criarAnuncio(
+              titulo,
+              preco,
+              categoria_id,
+              descricao,
+              quantidade,
+              imagens,
+              { guarantee: guarantee }
+            );
             const data = await response.json();
             results.push(data);
           } catch (err) {
@@ -678,7 +739,7 @@
         const results = await publishMultipleAnnouncements();
         let successCount = 0;
         let failureCount = 0;
-        results.forEach(res => {
+        results.forEach((res) => {
           if (res.id) successCount++;
           else failureCount++;
         });
@@ -693,7 +754,9 @@
         modal.style.display = "block";
         carregarVeiculos();
       });
-      spanClose.addEventListener("click", () => { modal.style.display = "none"; });
+      spanClose.addEventListener("click", () => {
+        modal.style.display = "none";
+      });
       window.addEventListener("click", (event) => {
         if (event.target == modal) modal.style.display = "none";
       });
@@ -705,7 +768,7 @@
         ];
         const tbody = document.getElementById("bodyVeiculos");
         tbody.innerHTML = "";
-        veiculos.forEach(v => {
+        veiculos.forEach((v) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `<td>${v.marca}</td>
                           <td>${v.modelo}</td>

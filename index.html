@@ -504,6 +504,44 @@
       <p>© 2025 Mercado Livre Integration Demo</p>
     </footer>
 
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+      // Configuração do Firebase (substitua os valores conforme seu projeto)
+      var firebaseConfig = {
+        apiKey: "SUA_API_KEY",
+        authDomain: "mercado-liv.firebaseapp.com",
+        databaseURL: "https://mercado-liv-default-rtdb.firebaseio.com/",
+        projectId: "mercado-liv",
+        storageBucket: "mercado-liv.appspot.com",
+        messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+        appId: "SEU_APP_ID"
+      };
+      // Inicializa o Firebase
+      firebase.initializeApp(firebaseConfig);
+      var database = firebase.database();
+
+      // Função para carregar as configurações globais do Firebase
+      function loadGlobalConfig() {
+        database.ref("siteConfig").once("value").then(function(snapshot) {
+          var config = snapshot.val();
+          if(config) {
+            if(config.siteTitle) document.getElementById("siteTitle").innerText = config.siteTitle;
+            if(config.siteSubTitle) document.getElementById("siteSubTitle").innerText = config.siteSubTitle;
+            if(config.siteFooter) document.getElementById("siteFooter").innerText = config.siteFooter;
+          }
+        });
+      }
+      loadGlobalConfig();
+
+      // Função para salvar a configuração global
+      function updateGlobalConfig(newConfig) {
+        return database.ref("siteConfig").set(newConfig);
+      }
+    </script>
+
+    <!-- Seus scripts restantes para OAuth, anúncios, etc. -->
     <script>
       // Helper: Toggle Collapsible Sections
       document.querySelectorAll(".section-header").forEach(header => {
@@ -512,17 +550,6 @@
           document.getElementById(targetId).classList.toggle("active");
         });
       });
-
-      // Load admin modifications from localStorage if available
-      function loadAdminSettings() {
-        const title = localStorage.getItem("siteTitle");
-        const subtitle = localStorage.getItem("siteSubTitle");
-        const footer = localStorage.getItem("siteFooter");
-        if (title) document.getElementById("siteTitle").innerText = title;
-        if (subtitle) document.getElementById("siteSubTitle").innerText = subtitle;
-        if (footer) document.getElementById("siteFooter").innerText = footer;
-      }
-      loadAdminSettings();
 
       // OAuth and API Configurations
       const CLIENT_ID = "SEU_CLIENT_ID";
@@ -610,26 +637,24 @@
         document.getElementById("appContainer").classList.remove("hidden");
       }
 
-      // Administração: Allow permanent modifications using localStorage.
+      // Administração: Update global config using Firebase
       document.getElementById("btnAdmin").addEventListener("click", function () {
         const password = prompt("Digite a senha de administração:");
         if (password === "Juhlindona20@") {
           const newTitle = prompt("Digite o novo nome do site:", document.getElementById("siteTitle").innerText);
           const newSubtitle = prompt("Digite o novo subtítulo:", document.getElementById("siteSubTitle").innerText);
           const newFooter = prompt("Digite o novo rodapé:", document.getElementById("siteFooter").innerText);
-          if (newTitle !== null) {
-            document.getElementById("siteTitle").innerText = newTitle;
-            localStorage.setItem("siteTitle", newTitle);
-          }
-          if (newSubtitle !== null) {
-            document.getElementById("siteSubTitle").innerText = newSubtitle;
-            localStorage.setItem("siteSubTitle", newSubtitle);
-          }
-          if (newFooter !== null) {
-            document.getElementById("siteFooter").innerText = newFooter;
-            localStorage.setItem("siteFooter", newFooter);
-          }
-          alert("Alterações realizadas com sucesso!");
+          var newConfig = {
+            siteTitle: newTitle,
+            siteSubTitle: newSubtitle,
+            siteFooter: newFooter
+          };
+          updateGlobalConfig(newConfig).then(function() {
+            alert("Alterações realizadas com sucesso!");
+            loadGlobalConfig();
+          }).catch(function() {
+            alert("Erro ao atualizar as configurações!");
+          });
         } else {
           alert("Senha incorreta!");
         }

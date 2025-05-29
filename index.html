@@ -182,56 +182,38 @@
         border: 1px solid var(--error-color);
         color: var(--error-color);
       }
+      /* Existing Ads Section */
+      #existingAds {
+        margin-bottom: 2rem;
+      }
+      #existingAds h2 {
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+      }
+      .ad-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: #fafafa;
+      }
+      .ad-card img {
+        width: 100px;
+        height: 100px;
+        border-radius: 4px;
+        object-fit: cover;
+      }
+      .ad-details {
+        flex: 1;
+      }
       footer {
         text-align: center;
         color: #fff;
         margin-top: 2rem;
-      }
-      /* Modal for Vehicle Selection */
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 100;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow-y: auto;
-        background-color: rgba(0, 0, 0, 0.5);
-        padding-top: 60px;
-      }
-      .modal-content {
-        background: #fff;
-        margin: 5% auto;
-        padding: 2rem;
-        border: 1px solid #888;
-        width: 90%;
-        max-width: 800px;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      }
-      .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-      }
-      .close:hover {
-        color: #000;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-      }
-      th, td {
-        padding: 0.5rem;
-        border: 1px solid #ccc;
-        text-align: left;
-      }
-      th {
-        background: #f2f2f2;
       }
     </style>
   </head>
@@ -261,6 +243,26 @@
 
     <!-- MAIN APPLICATION: Visible only after login -->
     <div class="container hidden" id="appContainer">
+      <!-- Collapsible Section: Anúncios Existentes -->
+      <h2 class="section-header" data-target="existingAds">Anúncios Existentes</h2>
+      <div class="content" id="existingAds">
+        <!-- Example ad cards, these would be loaded from an API in production -->
+        <div class="ad-card">
+          <img src="https://via.placeholder.com/100" alt="Ad 1" />
+          <div class="ad-details">
+            <h3>Produto Exemplo 1</h3>
+            <p>Categoria: Eletrônicos</p>
+          </div>
+        </div>
+        <div class="ad-card">
+          <img src="https://via.placeholder.com/100" alt="Ad 2" />
+          <div class="ad-details">
+            <h3>Produto Exemplo 2</h3>
+            <p>Categoria: Informática</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Collapsible Section: Criar Anúncio Único -->
       <h2 class="section-header" data-target="uniqueAd">Criar Anúncio Único</h2>
       <div class="content" id="uniqueAd">
@@ -284,7 +286,7 @@
           <div class="form-row" id="automaticCategoriesContainer">
             <p style="color: var(--primary-color); font-weight: bold;">Categorias automáticas:</p>
             <div class="checkbox-group" id="siteCategories">
-              <!-- Categories will be populated here automatically -->
+              <!-- Automatic categories will be populated here -->
             </div>
           </div>
           <!-- Marca e Número da Peça -->
@@ -353,8 +355,9 @@
             <label for="createDescription">Descrição:</label>
             <textarea id="createDescription" placeholder="Descrição detalhada do anúncio" required rows="4"></textarea>
           </div>
+          <!-- Allow multi-photo selection (input already allows multiple photos) -->
           <div class="form-row">
-            <label for="createImages">Imagens:</label>
+            <label for="createImages">Imagens (você pode selecionar várias):</label>
             <input type="file" id="createImages" multiple accept="image/*" />
           </div>
           <button type="submit" class="btn">Criar Anúncio</button>
@@ -473,17 +476,27 @@
       document.querySelectorAll(".section-header").forEach(header => {
         header.addEventListener("click", function () {
           const targetId = this.getAttribute("data-target");
-          const content = document.getElementById(targetId);
-          content.classList.toggle("active");
+          document.getElementById(targetId).classList.toggle("active");
         });
       });
+
+      // Load admin modifications from localStorage if available
+      function loadAdminSettings() {
+        const title = localStorage.getItem("siteTitle");
+        const subtitle = localStorage.getItem("siteSubTitle");
+        const footer = localStorage.getItem("siteFooter");
+        if(title) document.getElementById("siteTitle").innerText = title;
+        if(subtitle) document.getElementById("siteSubTitle").innerText = subtitle;
+        if(footer) document.getElementById("siteFooter").innerText = footer;
+      }
+      loadAdminSettings();
 
       // OAuth and API Configurations
       const CLIENT_ID = "SEU_CLIENT_ID";
       const CLIENT_SECRET = "SEU_CLIENT_SECRET"; // WARNING: Do not expose in production frontend.
       const REDIRECT_URI = window.location.origin;
       const AUTHORIZATION_URL = "https://auth.mercadolivre.com.br/authorization";
-      const TOKEN_URL = "https://api.mercadolivre.com/oauth/token";
+      const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
       let ACCESS_TOKEN = "";
       let SELLER_ID = "";
       const API_BASE = "https://api.mercadolibre.com";
@@ -564,17 +577,24 @@
         document.getElementById("appContainer").classList.remove("hidden");
       }
 
-      // Administração button: Prompt for password then allow editing header & footer texts.
+      // Administração: Allow permanent modifications using localStorage.
       document.getElementById("btnAdmin").addEventListener("click", function () {
         const password = prompt("Digite a senha de administração:");
         if (password === "Juhlindona20@") {
           const newTitle = prompt("Digite o novo nome do site:", document.getElementById("siteTitle").innerText);
+          const newSubtitle = prompt("Digite o novo subtítulo:", document.getElementById("siteSubTitle").innerText);
           const newFooter = prompt("Digite o novo rodapé:", document.getElementById("siteFooter").innerText);
           if (newTitle !== null) {
             document.getElementById("siteTitle").innerText = newTitle;
+            localStorage.setItem("siteTitle", newTitle);
+          }
+          if (newSubtitle !== null) {
+            document.getElementById("siteSubTitle").innerText = newSubtitle;
+            localStorage.setItem("siteSubTitle", newSubtitle);
           }
           if (newFooter !== null) {
             document.getElementById("siteFooter").innerText = newFooter;
+            localStorage.setItem("siteFooter", newFooter);
           }
           alert("Alterações realizadas com sucesso!");
         } else {
@@ -741,7 +761,7 @@
             <input type="number" class="multi-quantity" placeholder="Quantidade" value="1" required />
           </div>
           <div class="form-row">
-            <label>Imagens:</label>
+            <label>Imagens (você pode selecionar várias):</label>
             <input type="file" class="multi-images" multiple accept="image/*" />
           </div>
           <div class="form-row">

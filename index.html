@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mercado Livre - Publicar Anúncio com Login OAuth</title>
     <style>
-      /* Variáveis de Cor e Fontes */
       :root {
         --primary-color: #145da0;
         --secondary-color: #4a90e2;
@@ -14,7 +13,15 @@
         --background-gradient: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
         --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
-      /* Reset e Estilos Básicos */
+      /* Tema Escuro (aplicado via classe .dark-theme no body) */
+      :root.dark-theme {
+        --primary-color: #2c2c2c;
+        --secondary-color: #3d3d3d;
+        --accent-color: #555555;
+        --error-color: #f08080;
+        --background-gradient: linear-gradient(135deg, #3d3d3d, #2c2c2c);
+        --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
       * {
         margin: 0;
         padding: 0;
@@ -28,6 +35,9 @@
         padding: 20px;
         line-height: 1.6;
         animation: fadeInPage 1.5s ease-out;
+      }
+      body.dark-theme {
+        color: #f2f2f2;
       }
       @keyframes fadeInPage {
         from {
@@ -53,7 +63,6 @@
       header p {
         font-size: 1.2rem;
       }
-      /* Botão de Administração no header */
       #btnAdmin {
         position: absolute;
         top: 10px;
@@ -70,7 +79,16 @@
         background: var(--primary-color);
         transform: translateY(-2px);
       }
-      /* Containers */
+      /* Banner dinâmico */
+      #adminBanner {
+        text-align: center;
+        background-color: #ffd966;
+        color: #333;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 6px;
+        display: none; /* Exibido se tiver texto salvo no Firebase */
+      }
       .container {
         background-color: #fff;
         border-radius: 12px;
@@ -81,6 +99,10 @@
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         transition: transform 0.3s ease;
         animation: fadeInContainer 1s ease-out;
+      }
+      body.dark-theme .container {
+        background-color: #3d3d3d;
+        color: #f2f2f2;
       }
       @keyframes fadeInContainer {
         from {
@@ -100,6 +122,10 @@
         cursor: pointer;
         user-select: none;
       }
+      body.dark-theme h2.section-header {
+        color: #f2f2f2;
+        border-bottom-color: #c2c2c2;
+      }
       .content {
         display: none;
       }
@@ -114,6 +140,9 @@
         margin-bottom: 0.3rem;
         font-weight: bold;
         color: var(--primary-color);
+      }
+      body.dark-theme label {
+        color: #f2f2f2;
       }
       input[type="text"],
       input[type="number"],
@@ -160,7 +189,7 @@
       .btn:hover {
         background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
       .checkbox-group label {
         font-weight: normal;
@@ -182,13 +211,15 @@
         border: 1px solid var(--error-color);
         color: var(--error-color);
       }
-      /* Existing Ads Section */
       #existingAds {
         margin-bottom: 2rem;
       }
       #existingAds h2 {
         margin-bottom: 1rem;
         color: var(--primary-color);
+      }
+      body.dark-theme #existingAds h2 {
+        color: #f2f2f2;
       }
       .ad-card {
         border: 1px solid #ccc;
@@ -200,6 +231,10 @@
         align-items: center;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         background: #fafafa;
+      }
+      body.dark-theme .ad-card {
+        background: #4a4a4a;
+        border-color: #666;
       }
       .ad-card img {
         width: 100px;
@@ -215,7 +250,6 @@
         color: #fff;
         margin-top: 2rem;
       }
-      /* Modal for Vehicle Selection */
       .modal {
         display: none;
         position: fixed;
@@ -238,6 +272,11 @@
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.3);
       }
+      body.dark-theme .modal-content {
+        background: #3d3d3d;
+        color: #f2f2f2;
+        border-color: #888;
+      }
       .close {
         color: #aaa;
         float: right;
@@ -251,17 +290,18 @@
     </style>
   </head>
   <body>
+    <!-- Banner dinâmico (será exibido se houver texto configurado em siteBanner) -->
+    <div id="adminBanner"></div>
+
     <header>
       <h1 id="siteTitle">Mercado Livre - Publicar Anúncio</h1>
       <p id="siteSubTitle">Integrando Login OAuth com funcionalidades avançadas</p>
       <button id="btnAdmin" class="btn">Administração</button>
     </header>
 
-    <!-- LOGIN SECTION -->
     <div class="container" id="loginContainer">
       <div id="message" class="message hidden"></div>
       <button id="btnLogin" class="btn">Login com Mercado Livre</button>
-      <!-- Test Login Button (without Mercado Livre account) -->
       <button id="btnTestLogin" class="btn">Login de Teste (Sem conta)</button>
       <div id="authCodeSection" class="hidden">
         <p>Se o redirecionamento não funcionar, cole o código de autorização:</p>
@@ -274,12 +314,9 @@
       </div>
     </div>
 
-    <!-- MAIN APPLICATION: Visible only after login -->
     <div class="container hidden" id="appContainer">
-      <!-- Collapsible Section: Anúncios Existentes -->
       <h2 class="section-header" data-target="existingAds">Anúncios Existentes</h2>
       <div class="content" id="existingAds">
-        <!-- Example ad cards, these would be loaded from an API in production -->
         <div class="ad-card">
           <img src="https://via.placeholder.com/100" alt="Ad 1" />
           <div class="ad-details">
@@ -296,11 +333,9 @@
         </div>
       </div>
 
-      <!-- Collapsible Section: Criar Anúncio Único -->
       <h2 class="section-header" data-target="uniqueAd">Criar Anúncio Único</h2>
       <div class="content" id="uniqueAd">
         <form id="formCriarAnuncio">
-          <!-- Tipo de Artigo (padrão: Produtos) -->
           <div class="form-row">
             <label for="primaryCategory">Tipo de Artigo:</label>
             <select id="primaryCategory">
@@ -310,19 +345,14 @@
               <option value="Servicos">Serviços</option>
             </select>
           </div>
-          <!-- Nome do Produto -->
           <div class="form-row">
             <label for="createTitle">Nome do Produto:</label>
             <input type="text" id="createTitle" placeholder="Digite o nome do produto" required />
           </div>
-          <!-- Automatic Category Fetch -->
           <div class="form-row" id="automaticCategoriesContainer">
             <p style="color: var(--primary-color); font-weight: bold;">Categorias automáticas:</p>
-            <div class="checkbox-group" id="siteCategories">
-              <!-- Automatic categories will be populated here -->
-            </div>
+            <div class="checkbox-group" id="siteCategories"></div>
           </div>
-          <!-- Marca e Número da Peça -->
           <div class="form-row">
             <label for="createBrand">Marca:</label>
             <input type="text" id="createBrand" placeholder="Digite a marca" required />
@@ -331,7 +361,6 @@
             <label for="createPartNumber">Número da Peça:</label>
             <input type="text" id="createPartNumber" placeholder="Digite o número da peça" required />
           </div>
-          <!-- Estado do Artigo -->
           <div class="form-row">
             <label for="itemCondition">Condição do Artigo:</label>
             <select id="itemCondition">
@@ -339,18 +368,15 @@
               <option value="used">Usado</option>
             </select>
           </div>
-          <!-- Código de Etiqueta (automático: Sem código) -->
           <div class="form-row">
             <label>Código de Etiqueta:</label>
             <label><input type="radio" name="etiqueta" value="none" checked /> Sem código</label>
           </div>
-          <!-- Código INMETRO -->
           <div class="form-row">
             <label for="inmetroCode">Código INMETRO:</label>
             <input type="text" id="inmetroCode" placeholder="Clique em 'Gerar Código'" readonly />
             <button type="button" id="btnGenerateInmetro" class="btn">Gerar Código INMETRO</button>
           </div>
-          <!-- Características Secundárias -->
           <fieldset>
             <legend>Características Secundárias</legend>
             <div class="form-row">
@@ -370,12 +396,10 @@
               <label for="oemCode">Código OEM:</label>
               <input type="text" id="oemCode" placeholder="Digite o Código OEM" />
             </div>
-            <!-- Botão para Selecionar Veículos -->
             <div class="form-row">
               <button type="button" id="btnSelecionarVeiculos" class="btn">Selecionar Veículos</button>
             </div>
           </fieldset>
-          <!-- Informações Finais do Anúncio -->
           <div class="form-row">
             <label for="createPrice">Preço (R$):</label>
             <input type="number" id="createPrice" placeholder="Digite o preço" required step="0.01" />
@@ -388,7 +412,6 @@
             <label for="createDescription">Descrição:</label>
             <textarea id="createDescription" placeholder="Descrição detalhada do anúncio" required rows="4"></textarea>
           </div>
-          <!-- Allow multi-photo selection -->
           <div class="form-row">
             <label for="createImages">Imagens (você pode selecionar várias):</label>
             <input type="file" id="createImages" multiple accept="image/*" />
@@ -398,7 +421,6 @@
         <div id="createAnuncioResult" style="margin-top:1rem;"></div>
       </div>
 
-      <!-- Collapsible Section: Publicar Vários Anúncios -->
       <h2 class="section-header" data-target="multipleAds">Publicar Vários Anúncios</h2>
       <div class="content" id="multipleAds">
         <button id="btnAdicionarAnuncio" class="btn">Adicionar Formulário de Anúncio</button>
@@ -408,7 +430,6 @@
       </div>
     </div>
 
-    <!-- Modal para Seleção de Veículos (outside all containers) -->
     <div id="modalVeiculos" class="modal">
       <div class="modal-content">
         <span class="close" id="closeModal">&times;</span>
@@ -493,9 +514,7 @@
               <th>Válvulas</th>
             </tr>
           </thead>
-          <tbody id="bodyVeiculos">
-            <!-- Dados dos veículos serão carregados dinamicamente -->
-          </tbody>
+          <tbody id="bodyVeiculos"></tbody>
         </table>
       </div>
     </div>
@@ -508,7 +527,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-      // Configuração do Firebase (substitua os valores conforme seu projeto)
+      // Configuração do Firebase (substitua pelos valores do seu projeto)
       var firebaseConfig = {
         apiKey: "SUA_API_KEY",
         authDomain: "mercado-liv.firebaseapp.com",
@@ -518,42 +537,44 @@
         messagingSenderId: "SEU_MESSAGING_SENDER_ID",
         appId: "SEU_APP_ID"
       };
-      // Inicializa o Firebase
       firebase.initializeApp(firebaseConfig);
       var database = firebase.database();
 
-      // Função para carregar as configurações globais do Firebase
       function loadGlobalConfig() {
         database.ref("siteConfig").once("value").then(function(snapshot) {
           var config = snapshot.val();
           if(config) {
+            // Carrega Título, Subtítulo e Rodapé
             if(config.siteTitle) document.getElementById("siteTitle").innerText = config.siteTitle;
             if(config.siteSubTitle) document.getElementById("siteSubTitle").innerText = config.siteSubTitle;
             if(config.siteFooter) document.getElementById("siteFooter").innerText = config.siteFooter;
+
+            // Carrega texto do banner e exibe se existir
+            if(config.siteBanner && config.siteBanner.trim() !== "") {
+              var bannerElem = document.getElementById("adminBanner");
+              bannerElem.innerText = config.siteBanner;
+              bannerElem.style.display = "block";
+            }
+
+            // Carrega o tema (claro/escuro)
+            if(config.siteTheme === "dark") {
+              document.body.classList.add("dark-theme");
+              document.documentElement.classList.add("dark-theme");
+            }
           }
         });
       }
       loadGlobalConfig();
 
-      // Função para salvar a configuração global
       function updateGlobalConfig(newConfig) {
-        return database.ref("siteConfig").set(newConfig);
+        return database.ref("siteConfig").update(newConfig);
       }
     </script>
 
-    <!-- Seus scripts restantes para OAuth, anúncios, etc. -->
+    <!-- Scripts de autenticação e funcionalidades -->
     <script>
-      // Helper: Toggle Collapsible Sections
-      document.querySelectorAll(".section-header").forEach(header => {
-        header.addEventListener("click", function () {
-          const targetId = this.getAttribute("data-target");
-          document.getElementById(targetId).classList.toggle("active");
-        });
-      });
-
-      // OAuth and API Configurations
       const CLIENT_ID = "SEU_CLIENT_ID";
-      const CLIENT_SECRET = "SEU_CLIENT_SECRET"; // WARNING: Do not expose in production frontend.
+      const CLIENT_SECRET = "SEU_CLIENT_SECRET"; 
       const REDIRECT_URI = window.location.origin;
       const AUTHORIZATION_URL = "https://auth.mercadolivre.com.br/authorization";
       const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
@@ -561,7 +582,6 @@
       let SELLER_ID = "";
       const API_BASE = "https://api.mercadolibre.com";
 
-      // Function to show messages to the user
       function showMessage(msg, isError = false) {
         const messageEl = document.getElementById("message");
         messageEl.innerText = msg;
@@ -569,7 +589,6 @@
         messageEl.classList.remove("hidden");
       }
 
-      // OAuth functions
       function iniciarAutenticacao() {
         const params = new URLSearchParams({
           response_type: "code",
@@ -595,23 +614,23 @@
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: payload.toString()
         })
-          .then(response => response.json())
-          .then(data => {
-            if (data.access_token) {
-              ACCESS_TOKEN = data.access_token;
-              SELLER_ID = data.user_id;
-              showMessage("Autenticação realizada com sucesso!");
-              document.getElementById("authCodeSection").classList.add("hidden");
-              document.getElementById("btnLogin").classList.add("hidden");
-              document.getElementById("btnTestLogin").classList.add("hidden");
-              document.getElementById("loginStatus").classList.remove("hidden");
-              document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
-              document.getElementById("appContainer").classList.remove("hidden");
-            } else {
-              showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
-            }
-          })
-          .catch(error => showMessage("Erro: " + error, true));
+        .then(response => response.json())
+        .then(data => {
+          if (data.access_token) {
+            ACCESS_TOKEN = data.access_token;
+            SELLER_ID = data.user_id;
+            showMessage("Autenticação realizada com sucesso!");
+            document.getElementById("authCodeSection").classList.add("hidden");
+            document.getElementById("btnLogin").classList.add("hidden");
+            document.getElementById("btnTestLogin").classList.add("hidden");
+            document.getElementById("loginStatus").classList.remove("hidden");
+            document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
+            document.getElementById("appContainer").classList.remove("hidden");
+          } else {
+            showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
+          }
+        })
+        .catch(error => showMessage("Erro: " + error, true));
       }
 
       function checkForAuthCode() {
@@ -624,7 +643,6 @@
         }
       }
 
-      // Test Login Functionality (without using a Mercado Livre account)
       function testLogin() {
         ACCESS_TOKEN = "TEST_TOKEN";
         SELLER_ID = "TEST_SELLER";
@@ -637,30 +655,88 @@
         document.getElementById("appContainer").classList.remove("hidden");
       }
 
-      // Administração: Update global config using Firebase
+      // NOVAS FUNÇÕES DE ADMINISTRAÇÃO:
+      // 1. Alterar título, subtítulo, rodapé (já existia).
+      // 2. Alterar texto do banner.
+      // 3. Alternar entre tema claro/escuro.
       document.getElementById("btnAdmin").addEventListener("click", function () {
         const password = prompt("Digite a senha de administração:");
         if (password === "Juhlindona20@") {
-          const newTitle = prompt("Digite o novo nome do site:", document.getElementById("siteTitle").innerText);
-          const newSubtitle = prompt("Digite o novo subtítulo:", document.getElementById("siteSubTitle").innerText);
-          const newFooter = prompt("Digite o novo rodapé:", document.getElementById("siteFooter").innerText);
-          var newConfig = {
-            siteTitle: newTitle,
-            siteSubTitle: newSubtitle,
-            siteFooter: newFooter
-          };
-          updateGlobalConfig(newConfig).then(function() {
-            alert("Alterações realizadas com sucesso!");
-            loadGlobalConfig();
-          }).catch(function() {
-            alert("Erro ao atualizar as configurações!");
-          });
+          // Menu de escolhas de administração simples:
+          // Podemos criar um prompt, mas aqui vamos usar 'prompt' encadeado para exemplo rápido
+          const choice = prompt(
+            "Escolha o que deseja alterar:\n1 - Título/Subtítulo/Rodapé\n2 - Texto do Banner\n3 - Alternar Tema (Claro/Escuro)"
+          );
+
+          switch(choice) {
+            case "1":
+              // Título/Subtítulo/Rodapé
+              const newTitle = prompt("Digite o novo nome do site:", document.getElementById("siteTitle").innerText);
+              const newSubtitle = prompt("Digite o novo subtítulo:", document.getElementById("siteSubTitle").innerText);
+              const newFooter = prompt("Digite o novo rodapé:", document.getElementById("siteFooter").innerText);
+              updateGlobalConfig({
+                siteTitle: newTitle,
+                siteSubTitle: newSubtitle,
+                siteFooter: newFooter
+              })
+              .then(function() {
+                alert("Alterações realizadas com sucesso!");
+                loadGlobalConfig();
+              })
+              .catch(function() {
+                alert("Erro ao atualizar as configurações!");
+              });
+              break;
+
+            case "2":
+              // Alterar Texto do Banner
+              const newBanner = prompt("Digite o texto do banner (vazio para removê-lo):", "");
+              // Se vazio, removemos do Firebase
+              updateGlobalConfig({
+                siteBanner: newBanner
+              })
+              .then(function() {
+                alert("Banner atualizado com sucesso!");
+                loadGlobalConfig();
+              })
+              .catch(function() {
+                alert("Erro ao atualizar o banner!");
+              });
+              break;
+
+            case "3":
+              // Alternar Tema
+              // Se o body tiver a classe .dark-theme, removemos; caso contrário, adicionamos
+              const isDark = document.body.classList.contains("dark-theme");
+              let newTheme = isDark ? "light" : "dark";
+              updateGlobalConfig({
+                siteTheme: newTheme
+              })
+              .then(function() {
+                alert("Tema atualizado com sucesso!");
+                // Aplica imediatamente no frontend
+                if (isDark) {
+                  document.body.classList.remove("dark-theme");
+                  document.documentElement.classList.remove("dark-theme");
+                } else {
+                  document.body.classList.add("dark-theme");
+                  document.documentElement.classList.add("dark-theme");
+                }
+              })
+              .catch(function() {
+                alert("Erro ao atualizar o tema!");
+              });
+              break;
+
+            default:
+              alert("Opção inválida.");
+              break;
+          }
         } else {
           alert("Senha incorreta!");
         }
       });
 
-      // Event Listeners for OAuth and Test Login
       document.getElementById("btnLogin").addEventListener("click", iniciarAutenticacao);
       document.getElementById("btnTrocar").addEventListener("click", () => {
         const codeInput = document.getElementById("authCodeInput").value.trim();
@@ -673,7 +749,6 @@
       document.getElementById("btnTestLogin").addEventListener("click", testLogin);
       window.onload = checkForAuthCode;
 
-      // Function to simulate fetching automatic categories from Mercado Livre based on product name.
       function fetchAutomaticCategories(productName) {
         return new Promise((resolve) => {
           setTimeout(() => {
@@ -690,7 +765,6 @@
         });
       }
 
-      // Event listener on product name input to fetch automatic categories.
       document.getElementById("createTitle").addEventListener("blur", function () {
         const productName = this.value.trim();
         if (productName) {
@@ -706,7 +780,6 @@
         }
       });
 
-      // Functions for Creating Announcements
       document.getElementById("formCriarAnuncio").addEventListener("submit", function (e) {
         e.preventDefault();
         const titulo = document.getElementById("createTitle").value;
@@ -788,7 +861,6 @@
           });
       }
 
-      // Publicar Vários Anúncios
       const anuncioFormsContainer = document.getElementById("anuncioFormsContainer");
       document.getElementById("btnAdicionarAnuncio").addEventListener("click", () => {
         const formDiv = document.createElement("div");
@@ -847,7 +919,9 @@
           }
           const imagens = await Promise.all(imagensPromises);
           try {
-            const response = await criarAnuncio(titulo, preco, categoria_id, descricao, quantidade, imagens, { guarantee: guarantee });
+            const response = await criarAnuncio(
+              titulo, preco, categoria_id, descricao, quantidade, imagens, { guarantee: guarantee }
+            );
             const data = await response.json();
             results.push(data);
           } catch (err) {
@@ -869,7 +943,6 @@
         document.getElementById("resultMultiple").innerText = "Sucesso: " + successCount + " | Falhas: " + failureCount;
       });
 
-      // Modal: Seleção de Veículos
       const modal = document.getElementById("modalVeiculos");
       const btnSelecionarVeiculos = document.getElementById("btnSelecionarVeiculos");
       const spanClose = document.getElementById("closeModal");
@@ -884,29 +957,40 @@
         if (event.target == modal) modal.style.display = "none";
       });
       function carregarVeiculos() {
-        // Simulated data from Mercado Livre API
         const veiculos = [
-          { marca: "Ford", modelo: "Fiesta", ano: "2015", versao: "1.6 SE", motor: "1.6", combustivel: "Gasolina", potencia: "115cv", carroceria: "Hatch", transmissao: "Automática", cambio: "Powershift", portas: "4", direcao: "Hidráulica", tracao: "Dianteira", valvulas: "16" },
-          { marca: "Chevrolet", modelo: "Onix", ano: "2020", versao: "LTZ", motor: "1.0 Turbo", combustivel: "Gasolina/Etanol", potencia: "116cv", carroceria: "Hatch", transmissao: "Automática", cambio: "6 marchas", portas: "4", direcao: "Elétrica", tracao: "Dianteira", valvulas: "12" }
+          {
+            marca: "Ford", modelo: "Fiesta", ano: "2015", versao: "1.6 SE",
+            motor: "1.6", combustivel: "Gasolina", potencia: "115cv",
+            carroceria: "Hatch", transmissao: "Automática", cambio: "Powershift",
+            portas: "4", direcao: "Hidráulica", tracao: "Dianteira", valvulas: "16"
+          },
+          {
+            marca: "Chevrolet", modelo: "Onix", ano: "2020", versao: "LTZ",
+            motor: "1.0 Turbo", combustivel: "Gasolina/Etanol", potencia: "116cv",
+            carroceria: "Hatch", transmissao: "Automática", cambio: "6 marchas",
+            portas: "4", direcao: "Elétrica", tracao: "Dianteira", valvulas: "12"
+          }
         ];
         const tbody = document.getElementById("bodyVeiculos");
         tbody.innerHTML = "";
         veiculos.forEach((v) => {
           const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${v.marca}</td>
-                          <td>${v.modelo}</td>
-                          <td>${v.ano}</td>
-                          <td>${v.versao}</td>
-                          <td>${v.motor}</td>
-                          <td>${v.combustivel}</td>
-                          <td>${v.potencia}</td>
-                          <td>${v.carroceria}</td>
-                          <td>${v.transmissao}</td>
-                          <td>${v.cambio}</td>
-                          <td>${v.portas}</td>
-                          <td>${v.direcao}</td>
-                          <td>${v.tracao}</td>
-                          <td>${v.valvulas}</td>`;
+          tr.innerHTML = `
+            <td>${v.marca}</td>
+            <td>${v.modelo}</td>
+            <td>${v.ano}</td>
+            <td>${v.versao}</td>
+            <td>${v.motor}</td>
+            <td>${v.combustivel}</td>
+            <td>${v.potencia}</td>
+            <td>${v.carroceria}</td>
+            <td>${v.transmissao}</td>
+            <td>${v.cambio}</td>
+            <td>${v.portas}</td>
+            <td>${v.direcao}</td>
+            <td>${v.tracao}</td>
+            <td>${v.valvulas}</td>
+          `;
           tbody.appendChild(tr);
         });
       }

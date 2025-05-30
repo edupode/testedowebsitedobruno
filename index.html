@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mercado Livre - Publicar Anúncio com Login OAuth</title>
+    <title>Mercado Livre - Publicar Anúncio com Promoções</title>
     <style>
       :root {
         --primary-color: #145da0;
@@ -13,6 +13,7 @@
         --background-gradient: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
         --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
+
       /* Tema Escuro (aplicado via classe .dark-theme no body) */
       :root.dark-theme {
         --primary-color: #2c2c2c;
@@ -22,6 +23,7 @@
         --background-gradient: linear-gradient(135deg, #3d3d3d, #2c2c2c);
         --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
+
       * {
         margin: 0;
         padding: 0;
@@ -64,12 +66,14 @@
       header p {
         font-size: 1.2rem;
       }
-      /* Ensure buttons remain clickable */
-      button {
+
+      /* Guarantee pointer events on buttons */
+      button, input[type="button"] {
         pointer-events: auto;
         z-index: 20;
+        position: relative;
       }
-      /* Botão de Administração no header */
+
       #btnAdmin {
         position: absolute;
         top: 10px;
@@ -81,12 +85,14 @@
         border-radius: 5px;
         cursor: pointer;
         transition: background 0.3s ease, transform 0.2s ease;
+        z-index: 20;
       }
       #btnAdmin:hover {
         background: var(--primary-color);
         transform: translateY(-2px);
       }
-      /* Admin banner: if visible, it won't block clicks */
+
+      /* Admin banner uses pointer-events: none, so it doesn’t block clicks */
       #adminBanner {
         text-align: center;
         background-color: #ffd966;
@@ -96,7 +102,10 @@
         border-radius: 6px;
         display: none;
         pointer-events: none;
+        position: relative;
+        z-index: 5;
       }
+
       .container {
         background-color: #fff;
         border-radius: 12px;
@@ -124,6 +133,7 @@
           transform: translateY(0);
         }
       }
+
       h2.section-header {
         margin-bottom: 1.5rem;
         color: var(--primary-color);
@@ -136,12 +146,14 @@
         color: #f2f2f2;
         border-bottom-color: #c2c2c2;
       }
+
       .content {
         display: none;
       }
       .content.active {
         display: block;
       }
+
       .form-row {
         margin-bottom: 1rem;
       }
@@ -171,6 +183,7 @@
         outline: none;
         border-color: var(--primary-color);
       }
+
       fieldset {
         border: 1px solid #ddd;
         padding: 1rem;
@@ -183,6 +196,7 @@
         font-weight: bold;
         color: var(--primary-color);
       }
+
       .btn {
         display: inline-block;
         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -201,6 +215,7 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
+
       .checkbox-group label {
         font-weight: normal;
         margin-right: 1rem;
@@ -221,6 +236,7 @@
         border: 1px solid var(--error-color);
         color: var(--error-color);
       }
+
       #existingAds {
         margin-bottom: 2rem;
       }
@@ -231,6 +247,7 @@
       body.dark-theme #existingAds h2 {
         color: #f2f2f2;
       }
+
       .ad-card {
         border: 1px solid #ccc;
         border-radius: 8px;
@@ -255,11 +272,13 @@
       .ad-details {
         flex: 1;
       }
+
       footer {
         text-align: center;
         color: #fff;
         margin-top: 2rem;
       }
+
       .modal {
         display: none;
         position: fixed;
@@ -300,7 +319,6 @@
     </style>
   </head>
   <body>
-    <!-- Dynamic admin banner (will not block clicks) -->
     <div id="adminBanner"></div>
 
     <header>
@@ -440,6 +458,21 @@
         <button id="btnPublicarVarios" class="btn">Publicar Todos</button>
         <div id="resultMultiple" style="margin-top:1rem;"></div>
       </div>
+
+      <!-- PROMOÇÃO SECTION -->
+      <h2 class="section-header" data-target="promotionsSection">Criar Promoção</h2>
+      <div class="content" id="promotionsSection">
+        <div class="form-row">
+          <label for="promoDiscount">Desconto (%):</label>
+          <input type="number" id="promoDiscount" placeholder="Desconto em porcentagem" value="10" />
+        </div>
+        <div class="form-row">
+          <label for="promoDuration">Duração (dias):</label>
+          <input type="number" id="promoDuration" placeholder="Duração em dias" value="7" />
+        </div>
+        <button id="btnCriarPromocao" class="btn">Criar Promoção</button>
+        <div id="promoResult" style="margin-top:1rem;"></div>
+      </div>
     </div>
 
     <div id="modalVeiculos" class="modal">
@@ -539,7 +572,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-      // Configuração do Firebase (substitua pelos valores do seu projeto)
+      // Configuração do Firebase (exemplo: substitua pelos valores do seu projeto)
       var firebaseConfig = {
         apiKey: "SUA_API_KEY",
         authDomain: "mercado-liv.firebaseapp.com",
@@ -667,7 +700,6 @@
         document.getElementById("appContainer").classList.remove("hidden");
       }
 
-      // NOVAS FUNÇÕES DE ADMINISTRAÇÃO
       document.getElementById("btnAdmin").addEventListener("click", function () {
         const password = prompt("Digite a senha de administração:");
         if (password === "Juhlindona20@") {
@@ -748,6 +780,7 @@
 
       function fetchAutomaticCategories(productName) {
         return new Promise((resolve) => {
+          // Simulação de categorias automáticas
           setTimeout(() => {
             let categories = [];
             if (productName.toLowerCase().includes("computador")) {
@@ -801,7 +834,8 @@
           includesMolas: document.getElementById("includesMolas").checked,
           oemCode: document.getElementById("oemCode").value,
           siteCategories: siteCategories,
-          primaryCategory: primaryCategory
+          primaryCategory: primaryCategory,
+          condition: document.getElementById("itemCondition").value
         };
         const imagesFiles = document.getElementById("createImages").files;
         const imagensPromises = [];
@@ -809,7 +843,15 @@
           imagensPromises.push(enviarImagemMercadoLivre(imagesFiles[i]));
         }
         Promise.all(imagensPromises).then((imagens) => {
-          criarAnuncio(titulo, preco, extraFields.primaryCategory, descricao, quantidade, imagens, extraFields)
+          criarAnuncio(
+            titulo,
+            preco,
+            extraFields.primaryCategory,
+            descricao,
+            quantidade,
+            imagens,
+            extraFields
+          )
             .then((response) => response.json())
             .then((data) => {
               if (data.id) {
@@ -821,7 +863,7 @@
         });
       });
 
-      function criarAnuncio(titulo, preco, categoria_id, descricao, quantidade = 1, imagens = [], extraFields = {}) {
+      function criarAnuncio(titulo, preco, categoria_id, descricao, quantidade, imagens = [], extraFields = {}) {
         const payload = {
           title: titulo,
           price: preco,
@@ -829,7 +871,7 @@
           available_quantity: quantidade,
           buying_mode: "buy_it_now",
           listing_type_id: "gold_pro",
-          condition: document.getElementById("itemCondition").value,
+          condition: extraFields.condition || "new",
           category_id: categoria_id,
           description: { plain_text: descricao },
           pictures: imagens.map((src) => ({ source: src })),
@@ -916,7 +958,15 @@
           }
           const imagens = await Promise.all(imagensPromises);
           try {
-            const response = await criarAnuncio(titulo, preco, categoria_id, descricao, quantidade, imagens, { guarantee });
+            const response = await criarAnuncio(
+              titulo,
+              preco,
+              categoria_id,
+              descricao,
+              quantidade,
+              imagens,
+              { guarantee }
+            );
             const data = await response.json();
             results.push(data);
           } catch (err) {
@@ -938,6 +988,7 @@
         document.getElementById("resultMultiple").innerText = "Sucesso: " + successCount + " | Falhas: " + failureCount;
       });
 
+      // Modal scripts
       const modal = document.getElementById("modalVeiculos");
       const btnSelecionarVeiculos = document.getElementById("btnSelecionarVeiculos");
       const spanClose = document.getElementById("closeModal");
@@ -952,6 +1003,7 @@
         if (event.target == modal) modal.style.display = "none";
       });
       function carregarVeiculos() {
+        // Exemplo mockado de veículos
         const veiculos = [
           { marca: "Ford", modelo: "Fiesta", ano: "2015", versao: "1.6 SE", motor: "1.6", combustivel: "Gasolina", potencia: "115cv", carroceria: "Hatch", transmissao: "Automática", cambio: "Powershift", portas: "4", direcao: "Hidráulica", tracao: "Dianteira", valvulas: "16" },
           { marca: "Chevrolet", modelo: "Onix", ano: "2020", versao: "LTZ", motor: "1.0 Turbo", combustivel: "Gasolina/Etanol", potencia: "116cv", carroceria: "Hatch", transmissao: "Automática", cambio: "6 marchas", portas: "4", direcao: "Elétrica", tracao: "Dianteira", valvulas: "12" }
@@ -978,6 +1030,47 @@
           `;
           tbody.appendChild(tr);
         });
+      }
+
+      // Exemplo de criação de promoção (simplificado)
+      document.getElementById("btnCriarPromocao").addEventListener("click", () => {
+        const discount = parseFloat(document.getElementById("promoDiscount").value);
+        const duration = parseInt(document.getElementById("promoDuration").value);
+        if (!ACCESS_TOKEN) {
+          document.getElementById("promoResult").innerText = "Você precisa estar logado para criar uma promoção.";
+          return;
+        }
+        criarPromocao(discount, duration)
+          .then((res) => {
+            document.getElementById("promoResult").innerText = 
+              res.ok 
+              ? "Promoção criada com sucesso!" 
+              : "Falha ao criar promoção.";
+          })
+          .catch((err) => {
+            document.getElementById("promoResult").innerText = 
+              "Erro ao criar promoção: " + err.message;
+          });
+      });
+
+      async function criarPromocao(discount, durationDays) {
+        const url = `${API_BASE}/campaigns?access_token=${ACCESS_TOKEN}`;
+        // Exemplo de payload (pode variar segundo a documentação da API real)
+        const payload = {
+          discount: discount,
+          duration_days: durationDays,
+          campaign_type: "discount",
+          products: [
+            // IDs dos produtos que você deseja incluir
+            // Exemplo: { item_id: "MLB1234567", price: 100.0 },
+          ]
+        };
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        return response;
       }
     </script>
   </body>

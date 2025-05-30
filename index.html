@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Mercado Livre - Publicar Anúncio com Promoções</title>
     <style>
       :root {
@@ -67,11 +67,12 @@
         font-size: 1.2rem;
       }
 
-      /* Guarantee pointer events on buttons */
+      /* Ensure buttons are clickable */
       button, input[type="button"] {
+        position: relative;
         pointer-events: auto;
         z-index: 20;
-        position: relative;
+        cursor: pointer;
       }
 
       #btnAdmin {
@@ -83,7 +84,6 @@
         color: #fff;
         padding: 0.5rem 0.8rem;
         border-radius: 5px;
-        cursor: pointer;
         transition: background 0.3s ease, transform 0.2s ease;
         z-index: 20;
       }
@@ -92,7 +92,7 @@
         transform: translateY(-2px);
       }
 
-      /* Admin banner uses pointer-events: none, so it doesn’t block clicks */
+      /* Admin banner with pointer-events none so it won't block clicks */
       #adminBanner {
         text-align: center;
         background-color: #ffd966;
@@ -204,7 +204,6 @@
         padding: 0.75rem 1.5rem;
         border: none;
         border-radius: 30px;
-        cursor: pointer;
         font-size: 1rem;
         transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
         text-decoration: none;

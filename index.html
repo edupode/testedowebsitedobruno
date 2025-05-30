@@ -2,170 +2,1117 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Banco do BBB - Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Mercado Livre - Publicar Anúncio com Promoções</title>
     <style>
       :root {
-        --primary-color: #2980b9;
-        --secondary-color: #1c6d92;
-        --bg-color: #ecf0f1;
-        --card-bg: #fff;
-        --text-color: #2c3e50;
-        --alert-color: #d00000;
-        --success-color: green;
+        --primary-color: #145da0;
+        --secondary-color: #4a90e2;
+        --accent-color: #8dd08d;
+        --error-color: #f08080;
+        --background-gradient: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
+
+      /* Tema Escuro (aplicado via classe .dark-theme no body) */
+      :root.dark-theme {
+        --primary-color: #2c2c2c;
+        --secondary-color: #3d3d3d;
+        --accent-color: #555555;
+        --error-color: #f08080;
+        --background-gradient: linear-gradient(135deg, #3d3d3d, #2c2c2c);
+        --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
+
       body {
-        background: var(--bg-color);
-        color: var(--text-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
+        font-family: var(--font-family);
+        background: var(--background-gradient);
+        color: #333;
         min-height: 100vh;
         padding: 20px;
+        line-height: 1.6;
+        animation: fadeInPage 1.5s ease-out;
       }
-      h1 {
-        margin-bottom: 20px;
-        font-size: 2rem;
+
+      body.dark-theme {
+        color: #f2f2f2;
       }
-      .card {
+
+      @keyframes fadeInPage {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Overlay que não bloqueia cliques */
+      .overlay {
+        position: absolute;
         width: 100%;
-        max-width: 400px;
-        background: var(--card-bg);
-        border-radius: 8px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        padding: 30px 20px;
-        animation: fadeIn 0.6s ease;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
       }
-      .card h2 {
-        margin-bottom: 20px;
+
+      header {
         text-align: center;
-      }
-      form {
-        display: flex;
-        flex-direction: column;
-      }
-      label {
-        font-weight: 600;
-        margin-bottom: 6px;
-        font-size: 0.9rem;
-        color: var(--text-color);
-      }
-      input[type="text"],
-      input[type="password"] {
-        padding: 10px;
-        margin-bottom: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 0.95rem;
-      }
-      button {
-        background: var(--primary-color);
+        margin-bottom: 2rem;
         color: #fff;
-        border: none;
-        padding: 12px;
-        font-size: 1rem;
-        border-radius: 4px;
+        position: relative;
+        z-index: 10;
+      }
+
+      header h1 {
+        font-size: 2.8rem;
+        margin-bottom: 0.3rem;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      header p {
+        font-size: 1.2rem;
+      }
+
+      /* Botões devem ser claramente clicáveis */
+      button,
+      input[type="button"] {
+        position: relative;
+        pointer-events: auto;
+        z-index: 20;
         cursor: pointer;
-        transition: background 0.3s ease;
       }
-      button:hover {
+
+      #btnAdmin {
+        position: absolute;
+        top: 10px;
+        right: 10px;
         background: var(--secondary-color);
+        border: none;
+        color: #fff;
+        padding: 0.5rem 0.8rem;
+        border-radius: 5px;
+        transition: background 0.3s ease, transform 0.2s ease;
       }
-      .alert {
-        margin-top: 12px;
-        color: var(--alert-color);
-        font-weight: bold;
+
+      #btnAdmin:hover {
+        background: var(--primary-color);
+        transform: translateY(-2px);
+      }
+
+      /* Banner de admin sem interferir em cliques */
+      #adminBanner {
         text-align: center;
+        background-color: #ffd966;
+        color: #333;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 6px;
+        display: none;
+        pointer-events: none;
+        position: relative;
+        z-index: 5;
       }
-      .success {
-        margin-top: 12px;
-        color: var(--success-color);
-        font-weight: bold;
-        text-align: center;
+
+      .container {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 900px;
+        width: 100%;
+        margin: 0 auto 2rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease;
+        animation: fadeInContainer 1s ease-out;
+        position: relative;
+        z-index: 1;
       }
-      .toggle-register {
-        margin-top: 16px;
-        text-align: center;
-        font-size: 0.9rem;
+
+      body.dark-theme .container {
+        background-color: #3d3d3d;
+        color: #f2f2f2;
       }
-      .toggle-register a {
+
+      @keyframes fadeInContainer {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      h2.section-header {
+        margin-bottom: 1.5rem;
         color: var(--primary-color);
+        border-bottom: 2px solid var(--secondary-color);
+        padding-bottom: 0.3rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      body.dark-theme h2.section-header {
+        color: #f2f2f2;
+        border-bottom-color: #c2c2c2;
+      }
+
+      .content {
+        display: none;
+      }
+
+      .content.active {
+        display: block;
+      }
+
+      .form-row {
+        margin-bottom: 1rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.3rem;
+        font-weight: bold;
+        color: var(--primary-color);
+      }
+
+      body.dark-theme label {
+        color: #f2f2f2;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="file"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 0.6rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        transition: border-color 0.3s ease;
+      }
+
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+      }
+
+      fieldset {
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+      }
+
+      legend {
+        padding: 0 0.5rem;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: var(--primary-color);
+      }
+
+      .btn {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: #fff;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 30px;
+        font-size: 1rem;
+        transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
         text-decoration: none;
-        font-weight: 600;
+        margin-top: 0.5rem;
       }
-      .toggle-register a:hover {
-        text-decoration: underline;
+
+      .btn:hover {
+        background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+
+      .checkbox-group label {
+        font-weight: normal;
+        margin-right: 1rem;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .message {
+        margin: 1rem 0;
+        padding: 0.75rem;
+        border-radius: 8px;
+        background-color: #e0f8e9;
+        border: 1px solid var(--accent-color);
+        color: #2e7d32;
+      }
+
+      .error {
+        background-color: #fce8e6;
+        border: 1px solid var(--error-color);
+        color: var(--error-color);
+      }
+
+      #existingAds {
+        margin-bottom: 2rem;
+      }
+
+      #existingAds h2 {
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+      }
+
+      body.dark-theme #existingAds h2 {
+        color: #f2f2f2;
+      }
+
+      .ad-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background: #fafafa;
+      }
+
+      body.dark-theme .ad-card {
+        background: #4a4a4a;
+        border-color: #666;
+      }
+
+      .ad-card img {
+        width: 100px;
+        height: 100px;
+        border-radius: 4px;
+        object-fit: cover;
+      }
+
+      .ad-details {
+        flex: 1;
+      }
+
+      footer {
+        text-align: center;
+        color: #fff;
+        margin-top: 2rem;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding-top: 60px;
+      }
+
+      .modal-content {
+        background: #fff;
+        margin: 5% auto;
+        padding: 2rem;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 800px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      }
+
+      body.dark-theme .modal-content {
+        background: #3d3d3d;
+        color: #f2f2f2;
+        border-color: #888;
+      }
+
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover {
+        color: #000;
       }
     </style>
   </head>
   <body>
-    <h1>Banco do BBB</h1>
-    <div class="card" id="loginCard">
-      <h2>Login</h2>
-      <form id="loginForm">
-        <label for="loginName">Nome do Player</label>
-        <input type="text" id="loginName" placeholder="Digite seu nome..." required />
-        <label for="loginPassword">Senha</label>
-        <input type="password" id="loginPassword" placeholder="Digite sua senha..." required />
-        <button type="submit">Entrar</button>
-        <div id="loginMsg"></div>
-      </form>
-      <div class="toggle-register">
-        <p>If you are not registered, <a href="register.html">click here</a></p>
+    <!-- Overlay para evitar bloqueio de cliques -->
+    <div class="overlay"></div>
+
+    <div id="adminBanner"></div>
+
+    <header>
+      <h1 id="siteTitle">Mercado Livre - Publicar Anúncio</h1>
+      <p id="siteSubTitle">Integrando Login OAuth com funcionalidades avançadas</p>
+      <button id="btnAdmin" class="btn">Administração</button>
+    </header>
+
+    <!-- LOGIN SECTION -->
+    <div class="container" id="loginContainer">
+      <div id="message" class="message hidden"></div>
+      <button id="btnLogin" class="btn">Login com Mercado Livre</button>
+      <button id="btnTestLogin" class="btn">Login de Teste (Sem conta)</button>
+      <div id="authCodeSection" class="hidden">
+        <p>Se o redirecionamento não funcionar, cole o código de autorização:</p>
+        <input type="text" id="authCodeInput" placeholder="Código de autorização" />
+        <button id="btnTrocar" class="btn">Trocar Código por Token</button>
+      </div>
+      <div id="loginStatus" class="hidden" style="margin-top: 1rem;">
+        <p><strong>Logado com sucesso!</strong></p>
+        <p id="userData"></p>
       </div>
     </div>
 
+    <!-- MAIN APPLICATION: Visible only after login -->
+    <div class="container hidden" id="appContainer">
+      <h2 class="section-header" data-target="existingAds">Anúncios Existentes</h2>
+      <div class="content" id="existingAds">
+        <div class="ad-card">
+          <img src="https://via.placeholder.com/100" alt="Ad 1" />
+          <div class="ad-details">
+            <h3>Produto Exemplo 1</h3>
+            <p>Categoria: Eletrônicos</p>
+          </div>
+        </div>
+        <div class="ad-card">
+          <img src="https://via.placeholder.com/100" alt="Ad 2" />
+          <div class="ad-details">
+            <h3>Produto Exemplo 2</h3>
+            <p>Categoria: Informática</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-header" data-target="uniqueAd">Criar Anúncio Único</h2>
+      <div class="content" id="uniqueAd">
+        <form id="formCriarAnuncio">
+          <div class="form-row">
+            <label for="primaryCategory">Tipo de Artigo:</label>
+            <select id="primaryCategory">
+              <option value="Produtos" selected>Produtos</option>
+              <option value="Veiculos">Veículos</option>
+              <option value="Imoveis">Imóveis</option>
+              <option value="Servicos">Serviços</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="createTitle">Nome do Produto:</label>
+            <input type="text" id="createTitle" placeholder="Digite o nome do produto" required />
+          </div>
+          <div class="form-row" id="automaticCategoriesContainer">
+            <p style="color: var(--primary-color); font-weight: bold;">Categorias automáticas:</p>
+            <div class="checkbox-group" id="siteCategories"></div>
+          </div>
+          <div class="form-row">
+            <label for="createBrand">Marca:</label>
+            <input type="text" id="createBrand" placeholder="Digite a marca" required />
+          </div>
+          <div class="form-row">
+            <label for="createPartNumber">Número da Peça:</label>
+            <input type="text" id="createPartNumber" placeholder="Digite o número da peça" required />
+          </div>
+          <div class="form-row">
+            <label for="itemCondition">Condição do Artigo:</label>
+            <select id="itemCondition">
+              <option value="new">Novo</option>
+              <option value="used">Usado</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Código de Etiqueta:</label>
+            <label><input type="radio" name="etiqueta" value="none" checked /> Sem código</label>
+          </div>
+          <div class="form-row">
+            <label for="inmetroCode">Código INMETRO:</label>
+            <input type="text" id="inmetroCode" placeholder="Clique em 'Gerar Código'" readonly />
+            <button type="button" id="btnGenerateInmetro" class="btn">Gerar Código INMETRO</button>
+          </div>
+          <fieldset>
+            <legend>Características Secundárias</legend>
+            <div class="form-row">
+              <label for="vehicleType">Tipo de Veículo:</label>
+              <input type="text" id="vehicleType" placeholder="Ex: Carro, Moto, etc." />
+            </div>
+            <div class="form-row">
+              <label for="vehiclePositions">Posições:</label>
+              <input type="text" id="vehiclePositions" placeholder="Ex: Frente, Traseira, etc." />
+            </div>
+            <div class="form-row checkbox-group">
+              <label><input type="checkbox" id="includesCoxins" /> Inclui Coxins</label>
+              <label><input type="checkbox" id="includesBatentes" /> Inclui Batentes</label>
+              <label><input type="checkbox" id="includesMolas" /> Inclui Molas</label>
+            </div>
+            <div class="form-row">
+              <label for="oemCode">Código OEM:</label>
+              <input type="text" id="oemCode" placeholder="Digite o Código OEM" />
+            </div>
+            <div class="form-row">
+              <button type="button" id="btnSelecionarVeiculos" class="btn">Selecionar Veículos</button>
+            </div>
+          </fieldset>
+          <div class="form-row">
+            <label for="createPrice">Preço (R$):</label>
+            <input type="number" id="createPrice" placeholder="Digite o preço" required step="0.01" />
+          </div>
+          <div class="form-row">
+            <label for="createQuantity">Quantidade:</label>
+            <input type="number" id="createQuantity" placeholder="Quantidade" value="1" />
+          </div>
+          <div class="form-row">
+            <label for="createDescription">Descrição:</label>
+            <textarea id="createDescription" placeholder="Descrição detalhada do anúncio" required rows="4"></textarea>
+          </div>
+          <div class="form-row">
+            <label for="createImages">Imagens (você pode selecionar várias):</label>
+            <input type="file" id="createImages" multiple accept="image/*" />
+          </div>
+          <button type="submit" class="btn">Criar Anúncio</button>
+        </form>
+        <div id="createAnuncioResult" style="margin-top:1rem;"></div>
+      </div>
+
+      <h2 class="section-header" data-target="multipleAds">Publicar Vários Anúncios</h2>
+      <div class="content" id="multipleAds">
+        <button id="btnAdicionarAnuncio" class="btn">Adicionar Formulário de Anúncio</button>
+        <div id="anuncioFormsContainer"></div>
+        <button id="btnPublicarVarios" class="btn">Publicar Todos</button>
+        <div id="resultMultiple" style="margin-top:1rem;"></div>
+      </div>
+
+      <!-- PROMOÇÃO SECTION -->
+      <h2 class="section-header" data-target="promotionsSection">Criar Promoção</h2>
+      <div class="content" id="promotionsSection">
+        <div class="form-row">
+          <label for="promoDiscount">Desconto (%):</label>
+          <input type="number" id="promoDiscount" placeholder="Desconto em porcentagem" value="10" />
+        </div>
+        <div class="form-row">
+          <label for="promoDuration">Duração (dias):</label>
+          <input type="number" id="promoDuration" placeholder="Duração em dias" value="7" />
+        </div>
+        <button id="btnCriarPromocao" class="btn">Criar Promoção</button>
+        <div id="promoResult" style="margin-top:1rem;"></div>
+      </div>
+    </div>
+
+    <div id="modalVeiculos" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <h2>Selecionar Veículos</h2>
+        <fieldset>
+          <legend>Filtros de Veículos</legend>
+          <div class="form-row">
+            <label for="filterMarca">Marca:</label>
+            <input type="text" id="filterMarca" placeholder="Digite a marca" />
+          </div>
+          <div class="form-row">
+            <label for="filterModelo">Modelo:</label>
+            <input type="text" id="filterModelo" placeholder="Digite o modelo" />
+          </div>
+          <div class="form-row">
+            <label for="filterAno">Ano:</label>
+            <input type="number" id="filterAno" placeholder="Ano" />
+          </div>
+          <div class="form-row">
+            <label for="filterVersao">Versão:</label>
+            <input type="text" id="filterVersao" placeholder="Versão" />
+          </div>
+          <div class="form-row">
+            <label for="filterMotor">Motor:</label>
+            <input type="text" id="filterMotor" placeholder="Motor" />
+          </div>
+          <div class="form-row">
+            <label for="filterCombustivel">Combustível:</label>
+            <input type="text" id="filterCombustivel" placeholder="Combustível" />
+          </div>
+          <div class="form-row">
+            <label for="filterPotencia">Potência:</label>
+            <input type="text" id="filterPotencia" placeholder="Potência" />
+          </div>
+          <div class="form-row">
+            <label for="filterCarroceria">Carroceria:</label>
+            <input type="text" id="filterCarroceria" placeholder="Carroceria" />
+          </div>
+          <div class="form-row">
+            <label for="filterTransmissao">Transmissão:</label>
+            <input type="text" id="filterTransmissao" placeholder="Transmissão" />
+          </div>
+          <div class="form-row">
+            <label for="filterCambio">Câmbio:</label>
+            <input type="text" id="filterCambio" placeholder="Câmbio" />
+          </div>
+          <div class="form-row">
+            <label for="filterPortas">Portas:</label>
+            <input type="number" id="filterPortas" placeholder="Portas" />
+          </div>
+          <div class="form-row">
+            <label for="filterDirecao">Direção:</label>
+            <input type="text" id="filterDirecao" placeholder="Direção" />
+          </div>
+          <div class="form-row">
+            <label for="filterTracao">Tração:</label>
+            <input type="text" id="filterTracao" placeholder="Tração" />
+          </div>
+          <div class="form-row">
+            <label for="filterValvulas">Válvulas:</label>
+            <input type="number" id="filterValvulas" placeholder="Válvulas" />
+          </div>
+          <button id="btnFiltrarVeiculos" class="btn">Filtrar Veículos</button>
+        </fieldset>
+        <h3>Lista de Veículos</h3>
+        <table id="tabelaVeiculos">
+          <thead>
+            <tr>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Ano</th>
+              <th>Versão</th>
+              <th>Motor</th>
+              <th>Combustível</th>
+              <th>Potência</th>
+              <th>Carroceria</th>
+              <th>Transmissão</th>
+              <th>Câmbio</th>
+              <th>Portas</th>
+              <th>Direção</th>
+              <th>Tração</th>
+              <th>Válvulas</th>
+            </tr>
+          </thead>
+          <tbody id="bodyVeiculos"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer id="siteFooter">
+      <p>© 2025 Mercado Livre Integration Demo</p>
+    </footer>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-      const firebaseBaseUrl = "https://bancodobbb-default-rtdb.europe-west1.firebasedatabase.app";
-      const loginForm = document.getElementById("loginForm");
-      const loginMsg = document.getElementById("loginMsg");
+      // Configuração do Firebase (exemplo: substitua pelos valores do seu projeto)
+      var firebaseConfig = {
+        apiKey: "SUA_API_KEY",
+        authDomain: "mercado-liv.firebaseapp.com",
+        databaseURL: "https://mercado-liv-default-rtdb.firebaseio.com/",
+        projectId: "mercado-liv",
+        storageBucket: "mercado-liv.appspot.com",
+        messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+        appId: "SEU_APP_ID"
+      };
+      firebase.initializeApp(firebaseConfig);
+      var database = firebase.database();
 
-      loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        loginMsg.textContent = "";
-        loginMsg.className = "";
-        const playerName = document.getElementById("loginName").value.trim();
-        const password = document.getElementById("loginPassword").value.trim();
-
-        if (!playerName || !password) {
-          loginMsg.textContent = "Preencha os campos corretamente.";
-          loginMsg.className = "alert";
-          return;
-        }
-
-        try {
-          const response = await fetch(`${firebaseBaseUrl}/players/${playerName}.json`);
-          const data = await response.json();
-          if (!data) {
-            loginMsg.textContent = "Player não existe. Registre-se primeiro.";
-            loginMsg.className = "alert";
-          } else if (data.password === password) {
-            loginMsg.textContent = `Login bem-sucedido! Bem-vindo(a), ${playerName}.`;
-            loginMsg.className = "success";
-            // Redirect to the dashboard page after a short delay
-            setTimeout(() => {
-              window.location.href = "dashboard.html";
-            }, 1000);
-          } else {
-            loginMsg.textContent = "Senha incorreta!";
-            loginMsg.className = "alert";
+      function loadGlobalConfig() {
+        database.ref("siteConfig").once("value").then(function(snapshot) {
+          var config = snapshot.val();
+          if(config) {
+            if(config.siteTitle) document.getElementById("siteTitle").innerText = config.siteTitle;
+            if(config.siteSubTitle) document.getElementById("siteSubTitle").innerText = config.siteSubTitle;
+            if(config.siteFooter) document.getElementById("siteFooter").innerText = config.siteFooter;
+            if(config.siteBanner && config.siteBanner.trim() !== "") {
+              var bannerElem = document.getElementById("adminBanner");
+              bannerElem.innerText = config.siteBanner;
+              bannerElem.style.display = "block";
+            } else {
+              document.getElementById("adminBanner").style.display = "none";
+            }
+            if(config.siteTheme === "dark") {
+              document.body.classList.add("dark-theme");
+              document.documentElement.classList.add("dark-theme");
+            } else {
+              document.body.classList.remove("dark-theme");
+              document.documentElement.classList.remove("dark-theme");
+            }
           }
-        } catch (err) {
-          loginMsg.textContent = "Erro ao acessar banco de dados.";
-          loginMsg.className = "alert";
+        });
+      }
+      loadGlobalConfig();
+
+      function updateGlobalConfig(newConfig) {
+        return database.ref("siteConfig").update(newConfig);
+      }
+    </script>
+
+    <!-- Scripts de autenticação e funcionalidades -->
+    <script>
+      const CLIENT_ID = "SEU_CLIENT_ID";
+      const CLIENT_SECRET = "SEU_CLIENT_SECRET"; 
+      const REDIRECT_URI = window.location.origin;
+      const AUTHORIZATION_URL = "https://auth.mercadolivre.com.br/authorization";
+      const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
+      let ACCESS_TOKEN = "";
+      let SELLER_ID = "";
+      const API_BASE = "https://api.mercadolibre.com";
+
+      function showMessage(msg, isError = false) {
+        const messageEl = document.getElementById("message");
+        messageEl.innerText = msg;
+        messageEl.className = isError ? "message error" : "message";
+        messageEl.classList.remove("hidden");
+      }
+
+      function iniciarAutenticacao() {
+        const params = new URLSearchParams({
+          response_type: "code",
+          client_id: CLIENT_ID,
+          redirect_uri: REDIRECT_URI
+        });
+        const authUrl = `${AUTHORIZATION_URL}?${params.toString()}`;
+        window.open(authUrl, "_blank");
+        showMessage("Uma nova janela foi aberta para login. Após autorizar, insira o código se necessário.");
+        document.getElementById("authCodeSection").classList.remove("hidden");
+      }
+
+      function trocarCodigoPorToken(codigo) {
+        const payload = new URLSearchParams({
+          grant_type: "authorization_code",
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+          code: codigo,
+          redirect_uri: REDIRECT_URI
+        });
+        fetch(TOKEN_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: payload.toString()
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.access_token) {
+            ACCESS_TOKEN = data.access_token;
+            SELLER_ID = data.user_id;
+            showMessage("Autenticação realizada com sucesso!");
+            document.getElementById("authCodeSection").classList.add("hidden");
+            document.getElementById("btnLogin").classList.add("hidden");
+            document.getElementById("btnTestLogin").classList.add("hidden");
+            document.getElementById("loginStatus").classList.remove("hidden");
+            document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
+            document.getElementById("appContainer").classList.remove("hidden");
+          } else {
+            showMessage("Erro na troca de código por token: " + JSON.stringify(data), true);
+          }
+        })
+        .catch(error => showMessage("Erro: " + error, true));
+      }
+
+      function checkForAuthCode() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get("code");
+        if (code) {
+          showMessage("Código de autorização detectado. Realizando troca...");
+          trocarCodigoPorToken(code);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+
+      function testLogin() {
+        ACCESS_TOKEN = "TEST_TOKEN";
+        SELLER_ID = "TEST_SELLER";
+        showMessage("Login de teste realizado com sucesso!");
+        document.getElementById("btnLogin").classList.add("hidden");
+        document.getElementById("btnTestLogin").classList.add("hidden");
+        document.getElementById("authCodeSection").classList.add("hidden");
+        document.getElementById("loginStatus").classList.remove("hidden");
+        document.getElementById("userData").innerText = `Access Token: ${ACCESS_TOKEN} | Seller ID: ${SELLER_ID}`;
+        document.getElementById("appContainer").classList.remove("hidden");
+      }
+
+      document.getElementById("btnAdmin").addEventListener("click", function () {
+        const password = prompt("Digite a senha de administração:");
+        if (password === "Juhlindona20@") {
+          const choice = prompt(
+            "Escolha o que deseja alterar:\n1 - Título, Subtítulo e Rodapé\n2 - Texto do Banner\n3 - Alternar Tema (Claro/Escuro)"
+          );
+          switch(choice) {
+            case "1":
+              const newTitle = prompt("Digite o novo nome do site:", document.getElementById("siteTitle").innerText);
+              const newSubtitle = prompt("Digite o novo subtítulo:", document.getElementById("siteSubTitle").innerText);
+              const newFooter = prompt("Digite o novo rodapé:", document.getElementById("siteFooter").innerText);
+              updateGlobalConfig({
+                siteTitle: newTitle,
+                siteSubTitle: newSubtitle,
+                siteFooter: newFooter
+              })
+              .then(function() {
+                alert("Alterações realizadas com sucesso!");
+                loadGlobalConfig();
+              })
+              .catch(function() {
+                alert("Erro ao atualizar as configurações!");
+              });
+              break;
+            case "2":
+              const newBanner = prompt("Digite o texto do banner (vazio para removê-lo):", "");
+              updateGlobalConfig({
+                siteBanner: newBanner
+              })
+              .then(function() {
+                alert("Banner atualizado com sucesso!");
+                loadGlobalConfig();
+              })
+              .catch(function() {
+                alert("Erro ao atualizar o banner!");
+              });
+              break;
+            case "3":
+              const isDark = document.body.classList.contains("dark-theme");
+              const newTheme = isDark ? "light" : "dark";
+              updateGlobalConfig({
+                siteTheme: newTheme
+              })
+              .then(function() {
+                alert("Tema atualizado com sucesso!");
+                if (isDark) {
+                  document.body.classList.remove("dark-theme");
+                  document.documentElement.classList.remove("dark-theme");
+                } else {
+                  document.body.classList.add("dark-theme");
+                  document.documentElement.classList.add("dark-theme");
+                }
+              })
+              .catch(function() {
+                alert("Erro ao atualizar o tema!");
+              });
+              break;
+            default:
+              alert("Opção inválida.");
+              break;
+          }
+        } else {
+          alert("Senha incorreta!");
         }
       });
+
+      document.getElementById("btnLogin").addEventListener("click", iniciarAutenticacao);
+      document.getElementById("btnTrocar").addEventListener("click", () => {
+        const codeInput = document.getElementById("authCodeInput").value.trim();
+        if (codeInput) {
+          trocarCodigoPorToken(codeInput);
+        } else {
+          showMessage("Por favor, insira o código de autorização.", true);
+        }
+      });
+      document.getElementById("btnTestLogin").addEventListener("click", testLogin);
+      window.onload = checkForAuthCode;
+
+      function fetchAutomaticCategories(productName) {
+        return new Promise((resolve) => {
+          // Simulação de categorias automáticas
+          setTimeout(() => {
+            let categories = [];
+            if (productName.toLowerCase().includes("computador")) {
+              categories = ["Informática", "Eletrônicos", "Hardware"];
+            } else if (productName.toLowerCase().includes("celular")) {
+              categories = ["Eletrônicos", "Telefonia", "Acessórios"];
+            } else {
+              categories = ["Geral", "Outros"];
+            }
+            resolve(categories);
+          }, 500);
+        });
+      }
+
+      document.getElementById("createTitle").addEventListener("blur", function () {
+        const productName = this.value.trim();
+        if (productName) {
+          fetchAutomaticCategories(productName).then((categories) => {
+            const container = document.getElementById("siteCategories");
+            container.innerHTML = "";
+            categories.forEach((cat) => {
+              const label = document.createElement("label");
+              label.innerHTML = `<input type="checkbox" class="site-category" value="${cat}" checked /> ${cat}`;
+              container.appendChild(label);
+            });
+          });
+        }
+      });
+
+      document.getElementById("formCriarAnuncio").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const titulo = document.getElementById("createTitle").value;
+        const preco = parseFloat(document.getElementById("createPrice").value);
+        const quantidade = parseInt(document.getElementById("createQuantity").value) || 1;
+        const descricao = document.getElementById("createDescription").value;
+        const primaryCategory = document.getElementById("primaryCategory").value;
+        let siteCategories = [];
+        document.querySelectorAll(".site-category").forEach((cb) => {
+          if (cb.checked) siteCategories.push(cb.value);
+        });
+        const marca = document.getElementById("createBrand").value;
+        const partNumber = document.getElementById("createPartNumber").value;
+        const extraFields = {
+          marca: marca,
+          partNumber: partNumber,
+          inmetroCode: document.getElementById("inmetroCode").value,
+          vehicleType: document.getElementById("vehicleType").value,
+          positions: document.getElementById("vehiclePositions").value,
+          includesCoxins: document.getElementById("includesCoxins").checked,
+          includesBatentes: document.getElementById("includesBatentes").checked,
+          includesMolas: document.getElementById("includesMolas").checked,
+          oemCode: document.getElementById("oemCode").value,
+          siteCategories: siteCategories,
+          primaryCategory: primaryCategory,
+          condition: document.getElementById("itemCondition").value
+        };
+        const imagesFiles = document.getElementById("createImages").files;
+        const imagensPromises = [];
+        for (let i = 0; i < imagesFiles.length; i++) {
+          imagensPromises.push(enviarImagemMercadoLivre(imagesFiles[i]));
+        }
+        Promise.all(imagensPromises).then((imagens) => {
+          criarAnuncio(
+            titulo,
+            preco,
+            extraFields.primaryCategory,
+            descricao,
+            quantidade,
+            imagens,
+            extraFields
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.id) {
+                document.getElementById("createAnuncioResult").innerText = "Anúncio criado com sucesso! ID: " + data.id;
+              } else {
+                document.getElementById("createAnuncioResult").innerText = "Erro ao criar anúncio: " + JSON.stringify(data);
+              }
+            });
+        });
+      });
+
+      function criarAnuncio(titulo, preco, categoria_id, descricao, quantidade, imagens = [], extraFields = {}) {
+        const payload = {
+          title: titulo,
+          price: preco,
+          currency_id: "BRL",
+          available_quantity: quantidade,
+          buying_mode: "buy_it_now",
+          listing_type_id: "gold_pro",
+          condition: extraFields.condition || "new",
+          category_id: categoria_id,
+          description: { plain_text: descricao },
+          pictures: imagens.map((src) => ({ source: src })),
+          extra: extraFields
+        };
+        const url = `${API_BASE}/items?access_token=${ACCESS_TOKEN}`;
+        return fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      function enviarImagemMercadoLivre(file) {
+        const url = `${API_BASE}/pictures?access_token=${ACCESS_TOKEN}`;
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+        return fetch(url, { method: "POST", body: formData })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.secure_url) return data.secure_url;
+            else {
+              showMessage("Falha no upload da imagem: " + JSON.stringify(data), true);
+              return null;
+            }
+          });
+      }
+
+      const anuncioFormsContainer = document.getElementById("anuncioFormsContainer");
+      document.getElementById("btnAdicionarAnuncio").addEventListener("click", () => {
+        const formDiv = document.createElement("div");
+        formDiv.className = "announcement-form";
+        formDiv.style.border = "1px solid #ccc";
+        formDiv.style.padding = "1rem";
+        formDiv.style.borderRadius = "8px";
+        formDiv.style.marginBottom = "1.5rem";
+        formDiv.innerHTML = `
+          <div class="form-row">
+            <label>Título:</label>
+            <input type="text" class="multi-title" placeholder="Título" required />
+          </div>
+          <div class="form-row">
+            <label>Preço:</label>
+            <input type="number" class="multi-price" placeholder="Preço" required step="0.01" />
+          </div>
+          <div class="form-row">
+            <label>Categoria ID:</label>
+            <input type="text" class="multi-category" placeholder="Categoria ID" required />
+          </div>
+          <div class="form-row">
+            <label>Descrição:</label>
+            <textarea class="multi-description" placeholder="Descrição" required rows="3"></textarea>
+          </div>
+          <div class="form-row">
+            <label>Quantidade:</label>
+            <input type="number" class="multi-quantity" placeholder="Quantidade" value="1" required />
+          </div>
+          <div class="form-row">
+            <label>Imagens (você pode selecionar várias):</label>
+            <input type="file" class="multi-images" multiple accept="image/*" />
+          </div>
+          <div class="form-row">
+            <label>Tempo de Garantia (meses):</label>
+            <input type="number" class="multi-guarantee" placeholder="Garantia" value="0" required />
+          </div>
+        `;
+        anuncioFormsContainer.appendChild(formDiv);
+      });
+
+      async function publishMultipleAnnouncements() {
+        const results = [];
+        const forms = document.querySelectorAll(".announcement-form");
+        for (const form of forms) {
+          const titulo = form.querySelector(".multi-title").value;
+          const preco = parseFloat(form.querySelector(".multi-price").value);
+          const categoria_id = form.querySelector(".multi-category").value;
+          const descricao = form.querySelector(".multi-description").value;
+          const quantidade = parseInt(form.querySelector(".multi-quantity").value) || 1;
+          const guarantee = form.querySelector(".multi-guarantee").value;
+          const imagesInput = form.querySelector(".multi-images");
+          const imagensPromises = [];
+          for (let i = 0; i < imagesInput.files.length; i++) {
+            imagensPromises.push(enviarImagemMercadoLivre(imagesInput.files[i]));
+          }
+          const imagens = await Promise.all(imagensPromises);
+          try {
+            const response = await criarAnuncio(
+              titulo,
+              preco,
+              categoria_id,
+              descricao,
+              quantidade,
+              imagens,
+              { guarantee }
+            );
+            const data = await response.json();
+            results.push(data);
+          } catch (err) {
+            results.push({ error: err.message });
+          }
+        }
+        return results;
+      }
+
+      document.getElementById("btnPublicarVarios").addEventListener("click", async () => {
+        document.getElementById("resultMultiple").innerText = "Publicando anúncios...";
+        const results = await publishMultipleAnnouncements();
+        let successCount = 0;
+        let failureCount = 0;
+        results.forEach((res) => {
+          if (res.id) successCount++;
+          else failureCount++;
+        });
+        document.getElementById("resultMultiple").innerText = "Sucesso: " + successCount + " | Falhas: " + failureCount;
+      });
+
+      // Modal scripts
+      const modal = document.getElementById("modalVeiculos");
+      const btnSelecionarVeiculos = document.getElementById("btnSelecionarVeiculos");
+      const spanClose = document.getElementById("closeModal");
+      btnSelecionarVeiculos.addEventListener("click", () => {
+        modal.style.display = "block";
+        carregarVeiculos();
+      });
+      spanClose.addEventListener("click", () => {
+        modal.style.display = "none";
+      });
+      window.addEventListener("click", (event) => {
+        if (event.target == modal) modal.style.display = "none";
+      });
+
+      function carregarVeiculos() {
+        // Exemplo mockado de veículos
+        const veiculos = [
+          { marca: "Ford", modelo: "Fiesta", ano: "2015", versao: "1.6 SE", motor: "1.6", combustivel: "Gasolina", potencia: "115cv", carroceria: "Hatch", transmissao: "Automática", cambio: "Powershift", portas: "4", direcao: "Hidráulica", tracao: "Dianteira", valvulas: "16" },
+          { marca: "Chevrolet", modelo: "Onix", ano: "2020", versao: "LTZ", motor: "1.0 Turbo", combustivel: "Gasolina/Etanol", potencia: "116cv", carroceria: "Hatch", transmissao: "Automática", cambio: "6 marchas", portas: "4", direcao: "Elétrica", tracao: "Dianteira", valvulas: "12" }
+        ];
+        const tbody = document.getElementById("bodyVeiculos");
+        tbody.innerHTML = "";
+        veiculos.forEach((v) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${v.marca}</td>
+            <td>${v.modelo}</td>
+            <td>${v.ano}</td>
+            <td>${v.versao}</td>
+            <td>${v.motor}</td>
+            <td>${v.combustivel}</td>
+            <td>${v.potencia}</td>
+            <td>${v.carroceria}</td>
+            <td>${v.transmissao}</td>
+            <td>${v.cambio}</td>
+            <td>${v.portas}</td>
+            <td>${v.direcao}</td>
+            <td>${v.tracao}</td>
+            <td>${v.valvulas}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Exemplo de criação de promoção (simplificado)
+      document.getElementById("btnCriarPromocao").addEventListener("click", () => {
+        const discount = parseFloat(document.getElementById("promoDiscount").value);
+        const duration = parseInt(document.getElementById("promoDuration").value);
+        if (!ACCESS_TOKEN) {
+          document.getElementById("promoResult").innerText = "Você precisa estar logado para criar uma promoção.";
+          return;
+        }
+        criarPromocao(discount, duration)
+          .then((res) => {
+            document.getElementById("promoResult").innerText = 
+              res.ok 
+              ? "Promoção criada com sucesso!" 
+              : "Falha ao criar promoção.";
+          })
+          .catch((err) => {
+            document.getElementById("promoResult").innerText = 
+              "Erro ao criar promoção: " + err.message;
+          });
+      });
+
+      async function criarPromocao(discount, durationDays) {
+        const url = `${API_BASE}/campaigns?access_token=${ACCESS_TOKEN}`;
+        // Exemplo de payload (pode variar segundo a documentação da API real)
+        const payload = {
+          discount: discount,
+          duration_days: durationDays,
+          campaign_type: "discount",
+          products: [
+            // IDs dos produtos que você deseja incluir
+            // Exemplo: { item_id: "MLB1234567", price: 100.0 },
+          ]
+        };
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        return response;
+      }
     </script>
   </body>
 </html>
